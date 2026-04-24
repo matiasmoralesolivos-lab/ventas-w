@@ -138,6 +138,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
+const DIST_PATH = path.join(__dirname, '../dist');
+
+if (fs.existsSync(DIST_PATH)) {
+  app.use(express.static(DIST_PATH));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(DIST_PATH, 'index.html'));
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`✅ WAUP Upload Server corriendo en http://localhost:${PORT}`);
   console.log(`📁 Archivos guardados en: ${UPLOADS_DIR}`);
