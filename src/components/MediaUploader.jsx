@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-const SERVER = 'http://localhost:3001';
+const SERVER = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
  * MediaUploader — componente reutilizable para subir imágenes y/o videos.

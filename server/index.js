@@ -9,10 +9,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-app.use(cors({ origin: 'http://localhost:5173' }));
+const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ['http://localhost:5173'];
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 // ── Directorios de uploads ────────────────────────────────────────────────────
@@ -67,7 +69,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   }
   const isVideo = req.file.mimetype.startsWith('video/');
   const subdir  = isVideo ? 'videos' : 'images';
-  const url     = `http://localhost:${PORT}/uploads/${subdir}/${req.file.filename}`;
+  const url     = `${BASE_URL}/uploads/${subdir}/${req.file.filename}`;
   res.json({
     url,
     filename: req.file.filename,
@@ -87,7 +89,7 @@ app.post('/api/upload-multiple', upload.array('files', 20), (req, res) => {
     const isVideo = file.mimetype.startsWith('video/');
     const subdir  = isVideo ? 'videos' : 'images';
     return {
-      url: `http://localhost:${PORT}/uploads/${subdir}/${file.filename}`,
+      url: `${BASE_URL}/uploads/${subdir}/${file.filename}`,
       filename: file.filename,
       originalname: file.originalname,
       mimetype: file.mimetype,
@@ -115,12 +117,12 @@ app.delete('/api/upload/:type/:filename', (req, res) => {
 // Listar todos los archivos subidos
 app.get('/api/uploads', (req, res) => {
   const images = fs.readdirSync(IMAGES_DIR).map(f => ({
-    url: `http://localhost:${PORT}/uploads/images/${f}`,
+    url: `${BASE_URL}/uploads/images/${f}`,
     filename: f,
     type: 'image',
   }));
   const videos = fs.readdirSync(VIDEOS_DIR).map(f => ({
-    url: `http://localhost:${PORT}/uploads/videos/${f}`,
+    url: `${BASE_URL}/uploads/videos/${f}`,
     filename: f,
     type: 'video',
   }));
