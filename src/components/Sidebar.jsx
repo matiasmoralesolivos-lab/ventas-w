@@ -4,12 +4,13 @@ import { RUBROS, BLOCK_DEFINITIONS, BLOCK_CATEGORIES } from '../data/rubrosConfi
 import MediaUploader from './MediaUploader';
 
 // ─── Tab: Añadir bloques ───────────────────────────────────────────────────────
-function TabAdd({ rubro }) {
+function TabAdd({ rubro, templateId }) {
   const { addElement, setDraggingType } = useBuilderStore();
   const [activeCategory, setActiveCategory] = useState('info');
 
   const rubroObj = RUBROS.find(r => r.id === rubro);
-  const availableKeys = rubroObj?.availableBlocks || Object.keys(BLOCK_DEFINITIONS);
+  const tplObj = rubroObj?.templates?.find(t => t.id === templateId);
+  const availableKeys = tplObj?.availableBlocks || Object.keys(BLOCK_DEFINITIONS);
 
   const filtered = availableKeys.filter(key => {
     const def = BLOCK_DEFINITIONS[key];
@@ -495,8 +496,8 @@ function TabPage() {
 // ─── Sidebar principal ────────────────────────────────────────────────────────
 export default function Sidebar() {
   const [tab, setTab] = useState('add');
-  // ✅ FIX: sólo necesitamos rubro y selectedItemId del store a nivel Sidebar
-  const { rubro, selectedItemId } = useBuilderStore();
+  // ✅ FIX: sólo necesitamos rubro, templateId y selectedItemId del store a nivel Sidebar
+  const { rubro, templateId, selectedItemId } = useBuilderStore();
 
   // Auto-switch to Design tab when a block is selected
   const activeTab = selectedItemId && tab === 'add' ? 'design' : tab;
@@ -520,7 +521,7 @@ export default function Sidebar() {
         ))}
       </div>
       <div className="sidebar-content">
-        {activeTab === 'add'    && <TabAdd rubro={rubro} />}
+        {activeTab === 'add'    && <TabAdd rubro={rubro} templateId={templateId} />}
         {activeTab === 'design' && <TabDesign />}
         {activeTab === 'page'   && <TabPage />}
       </div>

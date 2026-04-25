@@ -15,7 +15,7 @@ export default function TopBar() {
 
   return (
     <div className="topbar">
-      <span className="topbar-logo">🚀 WAUP</span>
+      <span className="topbar-logo">WAUP!</span>
       <div className="topbar-divider" />
       {rubroObj && (
         <span className="topbar-rubro-badge">{rubroObj.emoji} {rubroObj.label}</span>

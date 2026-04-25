@@ -13,6 +13,7 @@ const GRADIENT_COLS = {
   'prev-indigo': ['#6366f1','#8b5cf6'],
   'prev-pink':   ['#ec4899','#f43f5e'],
   'prev-slate':  ['#64748b','#475569'],
+  'prev-green':  ['#22c55e','#10b981'],
 };
 
 function TplPreview({ cls }) {
@@ -48,15 +49,15 @@ export default function OnboardingScreen() {
   function handleContinue() {
     if (step === 1 && selectedRubro) { setStep(2); }
     else if (step === 2 && selectedTplId) {
-      const tpl = rubroObj.templates.find(t => t.id === selectedTplId);
-      setRubroAndTemplate(selectedRubro, selectedTplId, tpl.layout);
+      setRubroAndTemplate(selectedRubro, selectedTplId, []);
     }
   }
 
   return (
     <div className="onboarding">
-      <div className="onboarding-logo">🚀 WAUP</div>
-      <p className="onboarding-subtitle">Creá tu página de ventas en minutos</p>
+      <div className="onboarding-logo">WAUP!</div>
+      <h1 className="onboarding-main-title">Un enfoque en la conectividad,<br/>y otro en verte crecer.</h1>
+      <p className="onboarding-subtitle">Empoderando el emprendimiento colectivo. Elegí tu categoría para empezar.</p>
 
       {step === 1 && (
         <>
