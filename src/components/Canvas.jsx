@@ -1,8 +1,55 @@
 import GridLayout from 'react-grid-layout';
 import { useBuilderStore } from '../store/useBuilderStore';
 import { BLOCK_DEFINITIONS } from '../data/rubrosConfig';
+import { motion } from 'framer-motion';
 import '/node_modules/react-grid-layout/css/styles.css';
 import '/node_modules/react-resizable/css/styles.css';
+
+function DraggableText({ blockId, elementKey, as = 'div', className, style, children, ...props }) {
+  const { layout, updateItemContent, isPreviewMode } = useBuilderStore();
+  const block = layout.find(b => b.i === blockId);
+  const positions = block?.content?.positions || {};
+  const pos = positions[elementKey] || { x: 0, y: 0 };
+  const hasMoved = pos.x !== 0 || pos.y !== 0;
+
+  const handleDragEnd = (e, info) => {
+    const newX = pos.x + info.offset.x;
+    const newY = pos.y + info.offset.y;
+    updateItemContent(blockId, {
+      positions: {
+        ...positions,
+        [elementKey]: { x: newX, y: newY }
+      }
+    });
+  };
+
+  const MotionComponent = motion[as] || motion.div;
+
+  return (
+    <MotionComponent
+      drag={!isPreviewMode}
+      dragMomentum={false}
+      dragElastic={0}
+      animate={{ x: pos.x, y: pos.y }}
+      onDragEnd={handleDragEnd}
+      onPointerDown={(e) => { if (!isPreviewMode) e.stopPropagation(); }}
+      style={{ 
+        position: 'relative',
+        display: 'inline-block',
+        zIndex: hasMoved ? 20 : 1,
+        cursor: isPreviewMode ? 'default' : 'grab',
+        userSelect: 'none',
+        ...style 
+      }}
+      whileDrag={{ cursor: 'grabbing', zIndex: 999 }}
+      className={className}
+      {...props}
+    >
+      {children}
+    </MotionComponent>
+  );
+}
+
 
 // ─── Gradients ────────────────────────────────────────────────────────────────
 const GRADIENTS = {
@@ -33,12 +80,13 @@ function getVimeoId(url) {
 
 // ─── Bloques ──────────────────────────────────────────────────────────────────
 
-function HeaderMinimalBlock({ content }) {
+function HeaderMinimalBlock({ item }) {
+  const content = item.content || {};
   return (
-    <div className="b-header b-header-minimal" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+    <div className="b-header b-header-minimal" style={{ background: content.bgColor || undefined, color: content.textColor || undefined, position: 'relative' }}>
       {content.logoUrl
         ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <span className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</span>
+        : <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
       }
       <nav className="b-header-nav">
         {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
@@ -47,14 +95,15 @@ function HeaderMinimalBlock({ content }) {
   );
 }
 
-function HeaderCenteredBlock({ content }) {
+function HeaderCenteredBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-header b-header-centered" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.logoUrl
         ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <span className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</span>
+        : <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
       }
-      {content.tagline && <span className="b-header-tagline" style={{ color: content.textColor || undefined }}>{content.tagline}</span>}
+      {content.tagline && <DraggableText blockId={item.i} elementKey="tagline" as="span" className="b-header-tagline" style={{ color: content.textColor || undefined }}>{content.tagline}</DraggableText>}
       <nav className="b-header-nav">
         {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
       </nav>
@@ -62,12 +111,13 @@ function HeaderCenteredBlock({ content }) {
   );
 }
 
-function HeaderGlassBlock({ content }) {
+function HeaderGlassBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-header b-header-glass" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.logoUrl
         ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <span className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</span>
+        : <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
       }
       <nav className="b-header-nav">
         {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
@@ -76,29 +126,39 @@ function HeaderGlassBlock({ content }) {
   );
 }
 
-function BannerBlock({ content }) {
+function BannerBlock({ item }) {
+  const content = item.content || {};
   const bg = GRADIENTS[content.gradient] || GRADIENTS.blue;
   return (
-    <div className="b-banner" style={{ background: bg }}>
-      <h1>{content.title}</h1>
-      {content.subtitle && <p>{content.subtitle}</p>}
+    <div className="b-banner" style={{ background: content.imageUrl ? undefined : bg, position: 'relative' }}>
+      {content.imageUrl && (
+        <>
+          <img src={content.imageUrl} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', display:'block', zIndex:0 }} />
+          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1, pointerEvents:'none' }} />
+        </>
+      )}
+      <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', width:'100%', height:'100%', gap:8 }}>
+        <DraggableText blockId={item.i} elementKey="title" as="h1">{content.title}</DraggableText>
+        {content.subtitle && <DraggableText blockId={item.i} elementKey="subtitle" as="p">{content.subtitle}</DraggableText>}
+      </div>
     </div>
   );
 }
 
-function HeroSplitBlock({ content }) {
+function HeroSplitBlock({ item }) {
+  const content = item.content || {};
   const bg = GRADIENTS[content.gradient] || GRADIENTS.blue;
   return (
     <div className="b-hero-split" style={{ background: bg }}>
-      <div className="b-hero-split-text">
-        {content.badge && <span className="b-hero-badge">{content.badge}</span>}
-        <h2>{content.title}</h2>
-        <p>{content.subtitle}</p>
+      <div className="b-hero-split-text" style={{ position: 'relative' }}>
+        {content.badge && <DraggableText blockId={item.i} elementKey="badge" as="span" className="b-hero-badge">{content.badge}</DraggableText>}
+        <DraggableText blockId={item.i} elementKey="title" as="h2">{content.title}</DraggableText>
+        <DraggableText blockId={item.i} elementKey="subtitle" as="p">{content.subtitle}</DraggableText>
         {content.cta && <button className="b-hero-cta">{content.cta}</button>}
       </div>
       <div className="b-hero-split-visual">
         {content.imageUrl ? (
-          <img src={content.imageUrl} alt="Hero" className="b-hero-image" />
+          <img src={content.imageUrl} alt="Hero" className="b-hero-image" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
         ) : (
           <div className="b-hero-visual-card">
             <div className="b-hero-visual-icon">🚀</div>
@@ -110,62 +170,70 @@ function HeroSplitBlock({ content }) {
   );
 }
 
-function StatsRowBlock({ content }) {
+function StatsRowBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-stats" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {(content.items || []).map((item, i) => (
         <div key={i} className="b-stats-item">
-          <div className="b-stats-value" style={{ color: content.textColor || undefined }}>{item.value}</div>
-          <div className="b-stats-label" style={{ color: content.textColor ? `${content.textColor}bb` : undefined }}>{item.label}</div>
+          <DraggableText blockId={item.i} elementKey={`stats-value-${i}`} as="div" className="b-stats-value" style={{ color: content.textColor || undefined }}>{item.value}</DraggableText>
+          <DraggableText blockId={item.i} elementKey={`stats-label-${i}`} as="div" className="b-stats-label" style={{ color: content.textColor ? `${content.textColor}bb` : undefined }}>{item.label}</DraggableText>
         </div>
       ))}
     </div>
   );
 }
 
-function AvatarBlock({ content }) {
+function AvatarBlock({ item }) {
+  const content = item.content || {};
+
   return (
-    <div className="b-avatar" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      {content.imageUrl ? (
-        <img src={content.imageUrl} alt={content.name} className="b-avatar-img-real" />
-      ) : (
-        <div className="b-avatar-img">👤</div>
+    <div className="b-avatar" style={{ position:'relative', color: content.textColor || undefined, background: content.bgColor || undefined }}>
+      {content.bgImageUrl && (
+        <img src={content.bgImageUrl} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', display:'block', zIndex:0 }} />
       )}
-      <h3 style={{ color: content.textColor || undefined }}>{content.name}</h3>
-      <span style={{ color: content.textColor || undefined }}>{content.subtitle}</span>
-      {content.rating && (
-        <div className="b-avatar-rating">
-          {'★'.repeat(Math.round(content.rating))} {content.rating}
-        </div>
-      )}
+      <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
+        {content.imageUrl ? (
+          <img src={content.imageUrl} alt={content.name} className="b-avatar-img" style={{ objectFit:'cover', flexShrink:0 }} />
+        ) : (
+          <div className="b-avatar-img">👤</div>
+        )}
+        <DraggableText blockId={item.i} elementKey="name" as="h3" style={{ color: content.textColor || undefined }}>{content.name}</DraggableText>
+        <DraggableText blockId={item.i} elementKey="subtitle" as="span" style={{ color: content.textColor || undefined }}>{content.subtitle}</DraggableText>
+        {content.rating && (
+          <div className="b-avatar-rating">{'★'.repeat(Math.round(content.rating))} {content.rating}</div>
+        )}
+      </div>
     </div>
   );
 }
 
-function PriceListBlock({ content }) {
+function PriceListBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-pricelist" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
-      {(content.items || []).map((item, i) => (
+      <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>{content.title}</DraggableText>
+      {(content.items || []).map((it, i) => (
         <div key={i} className="b-pricelist-item">
-          <span style={{ color: content.textColor || undefined }}>{item.label}</span>
-          <b style={{ color: content.textColor || undefined }}>{item.price}</b>
+          <DraggableText blockId={item.i} elementKey={`price-label-${i}`} as="span" style={{ color: content.textColor || undefined }}>{it.label}</DraggableText>
+          <DraggableText blockId={item.i} elementKey={`price-val-${i}`} as="b" style={{ color: content.textColor || undefined }}>{it.price}</DraggableText>
         </div>
       ))}
     </div>
   );
 }
 
-function PricingTableBlock({ content }) {
+function PricingTableBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-pricing-table" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
+      <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>{content.title}</DraggableText>
       <div className="b-pricing-plans">
         {(content.plans || []).map((plan, i) => (
           <div key={i} className={`b-pricing-plan${plan.highlighted ? ' highlighted' : ''}`}>
             {plan.highlighted && <div className="b-pricing-badge">⭐ Más popular</div>}
-            <div className="b-pricing-name" style={{ color: content.textColor || undefined }}>{plan.name}</div>
-            <div className="b-pricing-price">{plan.price}</div>
+            <DraggableText blockId={item.i} elementKey={`plan-name-${i}`} as="div" className="b-pricing-name" style={{ color: content.textColor || undefined }}>{plan.name}</DraggableText>
+            <DraggableText blockId={item.i} elementKey={`plan-price-${i}`} as="div" className="b-pricing-price">{plan.price}</DraggableText>
             <ul className="b-pricing-features">
               {(plan.features || []).map((f, j) => <li key={j} style={{ color: content.textColor || undefined }}>✓ {f}</li>)}
             </ul>
@@ -177,16 +245,17 @@ function PricingTableBlock({ content }) {
   );
 }
 
-function IconGridBlock({ content }) {
+function IconGridBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-icon-grid" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
+      <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>{content.title}</DraggableText>
       <div className="b-icon-grid-inner">
         {(content.items || []).map((item, i) => (
           <div key={i} className="b-icon-card">
             <div className="b-icon-card-icon">{item.icon}</div>
-            <div className="b-icon-card-label" style={{ color: content.textColor || undefined }}>{item.label}</div>
-            <div className="b-icon-card-desc" style={{ color: content.textColor ? `${content.textColor}bb` : undefined }}>{item.desc}</div>
+            <DraggableText blockId={item.i} elementKey={`icon-label-${i}`} as="div" className="b-icon-card-label" style={{ color: content.textColor || undefined }}>{item.label}</DraggableText>
+            <DraggableText blockId={item.i} elementKey={`icon-desc-${i}`} as="div" className="b-icon-card-desc" style={{ color: content.textColor ? `${content.textColor}bb` : undefined }}>{item.desc}</DraggableText>
           </div>
         ))}
       </div>
@@ -194,15 +263,16 @@ function IconGridBlock({ content }) {
   );
 }
 
-function BenefitListBlock({ content }) {
+function BenefitListBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-benefit" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
+      <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>{content.title}</DraggableText>
       <ul className="b-benefit-list">
         {(content.items || []).map((item, i) => (
           <li key={i} className="b-benefit-item" style={{ color: content.textColor || undefined }}>
             <span className="b-benefit-check">✅</span>
-            {item.text}
+            <DraggableText blockId={item.i} elementKey={`benefit-text-${i}`} as="span">{item.text}</DraggableText>
           </li>
         ))}
       </ul>
@@ -210,33 +280,35 @@ function BenefitListBlock({ content }) {
   );
 }
 
-function WhatsAppBlock({ content }) {
+function WhatsAppBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-whatsapp">
       <span className="b-whatsapp-icon">💬</span>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-        <span>{content.text}</span>
+        <DraggableText blockId={item.i} elementKey="text" as="span">{content.text}</DraggableText>
         {content.phone && (
-          <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff', opacity: 0.9, marginTop: '-2px' }}>
+          <DraggableText blockId={item.i} elementKey="phone" as="div" style={{ fontSize: '15px', fontWeight: 600, color: '#fff', opacity: 0.9, marginTop: '-2px' }}>
             {content.phone}
-          </div>
+          </DraggableText>
         )}
       </div>
     </div>
   );
 }
 
-function ProductGridBlock({ content }) {
+function ProductGridBlock({ item }) {
+  const content = item.content || {};
   const cols = content.columns || 3;
   const images = content.images || [];
   const placeholderCount = Math.max(0, cols * 2 - images.length);
   return (
     <div className="b-grid" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
+      <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>{content.title}</DraggableText>
       <div className="b-grid-inner" style={{ gridTemplateColumns: `repeat(${cols},1fr)` }}>
         {images.map((url, i) => (
           <div key={i} className="b-grid-cell b-grid-cell--image">
-            <img src={url} alt={`Producto ${i+1}`} />
+            <img src={url} alt={`Producto ${i+1}`} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
           </div>
         ))}
         {Array.from({ length: placeholderCount }).map((_, i) => (
@@ -247,22 +319,23 @@ function ProductGridBlock({ content }) {
   );
 }
 
-function GalleryBlock({ content }) {
+function GalleryBlock({ item }) {
+  const content = item.content || {};
   const cols = content.columns || 3;
   const colors = ['#e0e7ff','#fce7f3','#fef3c7','#d1fae5','#ffe4e6','#f0f9ff'];
   const media = content.images || [];
   const placeholderCount = Math.max(0, cols * 2 - media.length);
   return (
     <div className="b-gallery" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
+      <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>{content.title}</DraggableText>
       <div className="b-gallery-inner" style={{ gridTemplateColumns: `repeat(${cols},1fr)` }}>
         {media.map((url, i) => {
           const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
           return (
             <div key={i} className="b-gallery-cell b-gallery-cell--media">
               {isVideo
-                ? <video src={url} muted autoPlay loop playsInline />
-                : <img src={url} alt={`Galería ${i+1}`} />
+                ? <video src={url} muted autoPlay loop playsInline style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                : <img src={url} alt={`Galería ${i+1}`} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
               }
             </div>
           );
@@ -275,19 +348,23 @@ function GalleryBlock({ content }) {
   );
 }
 
-function BioBlock({ content }) {
+function BioBlock({ item }) {
+  const content = item.content || {};
   return (
-    <div className="b-bio" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+    <div className="b-bio" style={{ position:'relative', background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.imageUrl && (
-        <img src={content.imageUrl} alt={content.title} className="b-bio-image" />
+        <img src={content.imageUrl} alt={content.title} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', display:'block', zIndex:0 }} />
       )}
-      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
-      <p style={{ color: content.textColor || undefined }}>{content.text}</p>
+      <div style={{ position:'relative', zIndex:1, padding:24 }}>
+        <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || (content.imageUrl ? '#fff' : undefined) }}>{content.title}</DraggableText>
+        <DraggableText blockId={item.i} elementKey="text" as="p" style={{ color: content.textColor || (content.imageUrl ? 'rgba(255,255,255,.85)' : undefined) }}>{content.text}</DraggableText>
+      </div>
     </div>
   );
 }
 
-function SocialBlock({ content }) {
+function SocialBlock({ item }) {
+  const content = item.content || {};
   const colors = { Instagram: '#e1306c', Facebook: '#1877f2', Twitter: '#1da1f2', TikTok: '#000', YouTube: '#ff0000', LinkedIn: '#0077b5' };
   return (
     <div className="b-social">
@@ -300,10 +377,11 @@ function SocialBlock({ content }) {
   );
 }
 
-function CoverageBlock({ content }) {
+function CoverageBlock({ item }) {
+  const content = item.content || {};
   return (
     <div className="b-coverage" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      <h3 style={{ color: content.textColor || undefined }}>📍 {content.title}</h3>
+      <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>📍 {content.title}</DraggableText>
       <div>
         {(content.zones || []).map((z, i) => (
           <span key={i} className="b-coverage-zone" style={{ color: content.textColor || undefined }}>📍 {z}</span>
@@ -313,14 +391,15 @@ function CoverageBlock({ content }) {
   );
 }
 
-function VideoBlock({ content }) {
+function VideoBlock({ item }) {
+  const content = item.content || {};
   const ytId = getYouTubeId(content.embedUrl);
   const viId = getVimeoId(content.embedUrl);
 
   if (ytId) {
     return (
       <div className="b-video">
-        {content.title && <h3>{content.title}</h3>}
+        {content.title && <DraggableText blockId={item.i} elementKey="title" as="h3">{content.title}</DraggableText>}
         <div className="b-video-embed">
           <iframe
             src={`https://www.youtube.com/embed/${ytId}`}
@@ -337,7 +416,7 @@ function VideoBlock({ content }) {
   if (viId) {
     return (
       <div className="b-video">
-        {content.title && <h3>{content.title}</h3>}
+        {content.title && <DraggableText blockId={item.i} elementKey="title" as="h3">{content.title}</DraggableText>}
         <div className="b-video-embed">
           <iframe
             src={`https://player.vimeo.com/video/${viId}`}
@@ -354,7 +433,7 @@ function VideoBlock({ content }) {
   if (content.videoUrl) {
     return (
       <div className="b-video">
-        {content.title && <h3>{content.title}</h3>}
+        {content.title && <DraggableText blockId={item.i} elementKey="title" as="h3">{content.title}</DraggableText>}
         <video
           src={content.videoUrl}
           controls
@@ -372,7 +451,8 @@ function VideoBlock({ content }) {
   );
 }
 
-function ImageOverlayBlock({ content }) {
+function ImageOverlayBlock({ item }) {
+  const content = item.content || {};
   const posMap = {
     'top-left':     { alignItems: 'flex-start', justifyContent: 'flex-start', textAlign: 'left' },
     'top-center':   { alignItems: 'flex-start', justifyContent: 'center',     textAlign: 'center' },
@@ -392,19 +472,14 @@ function ImageOverlayBlock({ content }) {
   const b = parseInt(overlayColor.slice(5,7),16);
 
   return (
-    <div className="b-image-overlay" style={{
-      backgroundImage: content.imageUrl ? `url(${content.imageUrl})` : undefined,
-    }}>
-      <div className="b-image-overlay-shade" style={{
-        background: `rgba(${r},${g},${b},${overlayOpacity})`,
-      }} />
-      <div className="b-image-overlay-content" style={{
-        alignItems: pos.alignItems,
-        justifyContent: pos.justifyContent,
-        textAlign: pos.textAlign,
-      }}>
-        {content.title && <h2 className="b-image-overlay-title">{content.title}</h2>}
-        {content.subtitle && <p className="b-image-overlay-sub">{content.subtitle}</p>}
+    <div className="b-image-overlay">
+      {content.imageUrl && (
+        <img src={content.imageUrl} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', display:'block', zIndex:0 }} />
+      )}
+      <div className="b-image-overlay-shade" style={{ background: `rgba(${r},${g},${b},${overlayOpacity})`, zIndex:1 }} />
+      <div className="b-image-overlay-content" style={{ alignItems: pos.alignItems, justifyContent: pos.justifyContent, textAlign: pos.textAlign, zIndex:2 }}>
+        {content.title && <DraggableText blockId={item.i} elementKey="title" as="h2" className="b-image-overlay-title">{content.title}</DraggableText>}
+        {content.subtitle && <DraggableText blockId={item.i} elementKey="subtitle" as="p" className="b-image-overlay-sub">{content.subtitle}</DraggableText>}
         {content.cta && <button className="b-image-overlay-cta">{content.cta}</button>}
       </div>
     </div>
@@ -414,25 +489,25 @@ function ImageOverlayBlock({ content }) {
 function renderBlock(item) {
   const c = item.content || {};
   switch (item.type) {
-    case 'header-minimal':  return <HeaderMinimalBlock content={c} />;
-    case 'header-centered': return <HeaderCenteredBlock content={c} />;
-    case 'header-glass':    return <HeaderGlassBlock content={c} />;
-    case 'banner':          return <BannerBlock content={c} />;
-    case 'hero-split':      return <HeroSplitBlock content={c} />;
-    case 'image-overlay':   return <ImageOverlayBlock content={c} />;
-    case 'stats-row':       return <StatsRowBlock content={c} />;
-    case 'avatar':          return <AvatarBlock content={c} />;
-    case 'price-list':      return <PriceListBlock content={c} />;
-    case 'pricing-table':   return <PricingTableBlock content={c} />;
-    case 'icon-grid':       return <IconGridBlock content={c} />;
-    case 'benefit-list':    return <BenefitListBlock content={c} />;
-    case 'whatsapp-cta':    return <WhatsAppBlock content={c} />;
-    case 'product-grid':    return <ProductGridBlock content={c} />;
-    case 'gallery':         return <GalleryBlock content={c} />;
-    case 'bio':             return <BioBlock content={c} />;
-    case 'social-links':    return <SocialBlock content={c} />;
-    case 'coverage-text':   return <CoverageBlock content={c} />;
-    case 'video-embed':     return <VideoBlock content={c} />;
+    case 'header-minimal':  return <HeaderMinimalBlock item={item} />;
+    case 'header-centered': return <HeaderCenteredBlock item={item} />;
+    case 'header-glass':    return <HeaderGlassBlock item={item} />;
+    case 'banner':          return <BannerBlock item={item} />;
+    case 'hero-split':      return <HeroSplitBlock item={item} />;
+    case 'image-overlay':   return <ImageOverlayBlock item={item} />;
+    case 'stats-row':       return <StatsRowBlock item={item} />;
+    case 'avatar':          return <AvatarBlock item={item} />;
+    case 'price-list':      return <PriceListBlock item={item} />;
+    case 'pricing-table':   return <PricingTableBlock item={item} />;
+    case 'icon-grid':       return <IconGridBlock item={item} />;
+    case 'benefit-list':    return <BenefitListBlock item={item} />;
+    case 'whatsapp-cta':    return <WhatsAppBlock item={item} />;
+    case 'product-grid':    return <ProductGridBlock item={item} />;
+    case 'gallery':         return <GalleryBlock item={item} />;
+    case 'bio':             return <BioBlock item={item} />;
+    case 'social-links':    return <SocialBlock item={item} />;
+    case 'coverage-text':   return <CoverageBlock item={item} />;
+    case 'video-embed':     return <VideoBlock item={item} />;
     default: return <div style={{ background:'#f8fafc', height:'100%', borderRadius:8, border:'2px dashed #e2e8f0' }} />;
   }
 }
@@ -472,7 +547,7 @@ export default function Canvas() {
     mobile:  { width: 390,  label: '📱 Móvil',    hint: '390px' },
     smarttv: { width: 1920, label: '📺 Smart TV', hint: '1920px' },
   };
-  const { width: paperWidth, label: deviceLabel, hint: deviceHint } = VIEW_CONFIG[viewMode] || VIEW_CONFIG.desktop;
+  const { width: paperWidth } = VIEW_CONFIG[viewMode] || VIEW_CONFIG.desktop;
 
   return (
     <div
@@ -480,14 +555,7 @@ export default function Canvas() {
       onClick={() => selectItem(null)}
       onDragOver={handleDragOver}
     >
-      {/* Device frame indicator */}
-      <div className="canvas-device-bar">
-        <span className="canvas-device-label">{deviceLabel}</span>
-        <span className="canvas-device-hint">{deviceHint}</span>
-      </div>
-
-      <div
-        className={`canvas-paper canvas-paper--${viewMode}`}
+      <div className={`canvas-paper canvas-paper--${viewMode}`}
         style={{ width: paperWidth }}
       >
         {layout.length === 0 ? (

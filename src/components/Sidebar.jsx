@@ -57,8 +57,9 @@ function TabAdd({ rubro, templateId }) {
         return (
           <button
             key={key}
-            className="block-btn"
-            draggable
+            className="block-btn droppableElement"
+            draggable={true}
+            unselectable="on"
             onDragStart={(e) => handleDragStart(e, key)}
             onDragEnd={handleDragEnd}
             onClick={() => addElement(key)}
@@ -121,6 +122,13 @@ function TabDesign() {
       <div className="no-selection">
         <span>👆</span>
         <p>Hacé clic en un bloque del canvas para editarlo aquí.</p>
+        <button
+          className="block-btn"
+          style={{ justifyContent: 'center', color: 'var(--accent-2)', marginTop: 12 }}
+          onClick={() => useBuilderStore.getState().selectItem(null)}
+        >
+          ＋ Volver a Añadir bloques
+        </button>
       </div>
     );
   }
@@ -289,6 +297,12 @@ function TabDesign() {
             onChange={url => update({ imageUrl: url })}
             accept="image"
             label="Foto de perfil"
+          />
+          <MediaUploader
+            value={c.bgImageUrl || null}
+            onChange={url => update({ bgImageUrl: url })}
+            accept="image"
+            label="Imagen de fondo (opcional)"
           />
           <div className="design-field"><label className="design-label">Nombre</label>
             <input className="design-input" value={c.name||''} onChange={e=>update({name:e.target.value})} /></div>
@@ -586,6 +600,9 @@ export default function Sidebar() {
   useEffect(() => {
     if (selectedItemId) {
       setTab('design');
+    } else if (tab === 'design') {
+      // Cuando se deselecciona un bloque, volver automáticamente a "Añadir"
+      setTab('add');
     }
   }, [selectedItemId]);
 
