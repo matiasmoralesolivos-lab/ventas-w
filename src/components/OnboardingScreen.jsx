@@ -56,8 +56,7 @@ export default function OnboardingScreen() {
   return (
     <div className="onboarding">
       <div className="onboarding-logo">WAUP!</div>
-      <h1 className="onboarding-main-title">Un enfoque en la conectividad,<br/>y otro en verte crecer.</h1>
-      <p className="onboarding-subtitle">Empoderando el emprendimiento colectivo. Elegí tu categoría para empezar.</p>
+      
 
       {step === 1 && (
         <>

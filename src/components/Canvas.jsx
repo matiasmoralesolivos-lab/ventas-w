@@ -35,13 +35,13 @@ function getVimeoId(url) {
 
 function HeaderMinimalBlock({ content }) {
   return (
-    <div className="b-header b-header-minimal">
+    <div className="b-header b-header-minimal" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.logoUrl
         ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <span className="b-header-brand">{content.brand}</span>
+        : <span className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</span>
       }
       <nav className="b-header-nav">
-        {(content.links || []).map((l, i) => <a key={i} href="#">{l}</a>)}
+        {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
       </nav>
     </div>
   );
@@ -49,14 +49,14 @@ function HeaderMinimalBlock({ content }) {
 
 function HeaderCenteredBlock({ content }) {
   return (
-    <div className="b-header b-header-centered">
+    <div className="b-header b-header-centered" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.logoUrl
         ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <span className="b-header-brand">{content.brand}</span>
+        : <span className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</span>
       }
-      {content.tagline && <span className="b-header-tagline">{content.tagline}</span>}
+      {content.tagline && <span className="b-header-tagline" style={{ color: content.textColor || undefined }}>{content.tagline}</span>}
       <nav className="b-header-nav">
-        {(content.links || []).map((l, i) => <a key={i} href="#">{l}</a>)}
+        {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
       </nav>
     </div>
   );
@@ -64,13 +64,13 @@ function HeaderCenteredBlock({ content }) {
 
 function HeaderGlassBlock({ content }) {
   return (
-    <div className="b-header b-header-glass">
+    <div className="b-header b-header-glass" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.logoUrl
         ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <span className="b-header-brand">{content.brand}</span>
+        : <span className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</span>
       }
       <nav className="b-header-nav">
-        {(content.links || []).map((l, i) => <a key={i} href="#">{l}</a>)}
+        {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
       </nav>
     </div>
   );
@@ -112,11 +112,11 @@ function HeroSplitBlock({ content }) {
 
 function StatsRowBlock({ content }) {
   return (
-    <div className="b-stats">
+    <div className="b-stats" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {(content.items || []).map((item, i) => (
         <div key={i} className="b-stats-item">
-          <div className="b-stats-value">{item.value}</div>
-          <div className="b-stats-label">{item.label}</div>
+          <div className="b-stats-value" style={{ color: content.textColor || undefined }}>{item.value}</div>
+          <div className="b-stats-label" style={{ color: content.textColor ? `${content.textColor}bb` : undefined }}>{item.label}</div>
         </div>
       ))}
     </div>
@@ -125,14 +125,14 @@ function StatsRowBlock({ content }) {
 
 function AvatarBlock({ content }) {
   return (
-    <div className="b-avatar">
+    <div className="b-avatar" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.imageUrl ? (
         <img src={content.imageUrl} alt={content.name} className="b-avatar-img-real" />
       ) : (
         <div className="b-avatar-img">👤</div>
       )}
-      <h3>{content.name}</h3>
-      <span>{content.subtitle}</span>
+      <h3 style={{ color: content.textColor || undefined }}>{content.name}</h3>
+      <span style={{ color: content.textColor || undefined }}>{content.subtitle}</span>
       {content.rating && (
         <div className="b-avatar-rating">
           {'★'.repeat(Math.round(content.rating))} {content.rating}
@@ -144,12 +144,12 @@ function AvatarBlock({ content }) {
 
 function PriceListBlock({ content }) {
   return (
-    <div className="b-pricelist">
-      <h3>{content.title}</h3>
+    <div className="b-pricelist" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
       {(content.items || []).map((item, i) => (
         <div key={i} className="b-pricelist-item">
-          <span>{item.label}</span>
-          <b>{item.price}</b>
+          <span style={{ color: content.textColor || undefined }}>{item.label}</span>
+          <b style={{ color: content.textColor || undefined }}>{item.price}</b>
         </div>
       ))}
     </div>
@@ -158,16 +158,16 @@ function PriceListBlock({ content }) {
 
 function PricingTableBlock({ content }) {
   return (
-    <div className="b-pricing-table">
-      <h3>{content.title}</h3>
+    <div className="b-pricing-table" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
       <div className="b-pricing-plans">
         {(content.plans || []).map((plan, i) => (
           <div key={i} className={`b-pricing-plan${plan.highlighted ? ' highlighted' : ''}`}>
             {plan.highlighted && <div className="b-pricing-badge">⭐ Más popular</div>}
-            <div className="b-pricing-name">{plan.name}</div>
+            <div className="b-pricing-name" style={{ color: content.textColor || undefined }}>{plan.name}</div>
             <div className="b-pricing-price">{plan.price}</div>
             <ul className="b-pricing-features">
-              {(plan.features || []).map((f, j) => <li key={j}>✓ {f}</li>)}
+              {(plan.features || []).map((f, j) => <li key={j} style={{ color: content.textColor || undefined }}>✓ {f}</li>)}
             </ul>
             <button className="b-pricing-cta">{plan.cta}</button>
           </div>
@@ -179,14 +179,14 @@ function PricingTableBlock({ content }) {
 
 function IconGridBlock({ content }) {
   return (
-    <div className="b-icon-grid">
-      <h3>{content.title}</h3>
+    <div className="b-icon-grid" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
       <div className="b-icon-grid-inner">
         {(content.items || []).map((item, i) => (
           <div key={i} className="b-icon-card">
             <div className="b-icon-card-icon">{item.icon}</div>
-            <div className="b-icon-card-label">{item.label}</div>
-            <div className="b-icon-card-desc">{item.desc}</div>
+            <div className="b-icon-card-label" style={{ color: content.textColor || undefined }}>{item.label}</div>
+            <div className="b-icon-card-desc" style={{ color: content.textColor ? `${content.textColor}bb` : undefined }}>{item.desc}</div>
           </div>
         ))}
       </div>
@@ -196,11 +196,11 @@ function IconGridBlock({ content }) {
 
 function BenefitListBlock({ content }) {
   return (
-    <div className="b-benefit">
-      <h3>{content.title}</h3>
+    <div className="b-benefit" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
       <ul className="b-benefit-list">
         {(content.items || []).map((item, i) => (
-          <li key={i} className="b-benefit-item">
+          <li key={i} className="b-benefit-item" style={{ color: content.textColor || undefined }}>
             <span className="b-benefit-check">✅</span>
             {item.text}
           </li>
@@ -214,7 +214,14 @@ function WhatsAppBlock({ content }) {
   return (
     <div className="b-whatsapp">
       <span className="b-whatsapp-icon">💬</span>
-      <span>{content.text}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <span>{content.text}</span>
+        {content.phone && (
+          <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff', opacity: 0.9, marginTop: '-2px' }}>
+            {content.phone}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -224,8 +231,8 @@ function ProductGridBlock({ content }) {
   const images = content.images || [];
   const placeholderCount = Math.max(0, cols * 2 - images.length);
   return (
-    <div className="b-grid">
-      <h3>{content.title}</h3>
+    <div className="b-grid" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
       <div className="b-grid-inner" style={{ gridTemplateColumns: `repeat(${cols},1fr)` }}>
         {images.map((url, i) => (
           <div key={i} className="b-grid-cell b-grid-cell--image">
@@ -246,8 +253,8 @@ function GalleryBlock({ content }) {
   const media = content.images || [];
   const placeholderCount = Math.max(0, cols * 2 - media.length);
   return (
-    <div className="b-gallery">
-      <h3>{content.title}</h3>
+    <div className="b-gallery" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
       <div className="b-gallery-inner" style={{ gridTemplateColumns: `repeat(${cols},1fr)` }}>
         {media.map((url, i) => {
           const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url);
@@ -270,12 +277,12 @@ function GalleryBlock({ content }) {
 
 function BioBlock({ content }) {
   return (
-    <div className="b-bio">
+    <div className="b-bio" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
       {content.imageUrl && (
         <img src={content.imageUrl} alt={content.title} className="b-bio-image" />
       )}
-      <h3>{content.title}</h3>
-      <p>{content.text}</p>
+      <h3 style={{ color: content.textColor || undefined }}>{content.title}</h3>
+      <p style={{ color: content.textColor || undefined }}>{content.text}</p>
     </div>
   );
 }
@@ -295,11 +302,11 @@ function SocialBlock({ content }) {
 
 function CoverageBlock({ content }) {
   return (
-    <div className="b-coverage">
-      <h3>📍 {content.title}</h3>
+    <div className="b-coverage" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
+      <h3 style={{ color: content.textColor || undefined }}>📍 {content.title}</h3>
       <div>
         {(content.zones || []).map((z, i) => (
-          <span key={i} className="b-coverage-zone">📍 {z}</span>
+          <span key={i} className="b-coverage-zone" style={{ color: content.textColor || undefined }}>📍 {z}</span>
         ))}
       </div>
     </div>
@@ -365,6 +372,45 @@ function VideoBlock({ content }) {
   );
 }
 
+function ImageOverlayBlock({ content }) {
+  const posMap = {
+    'top-left':     { alignItems: 'flex-start', justifyContent: 'flex-start', textAlign: 'left' },
+    'top-center':   { alignItems: 'flex-start', justifyContent: 'center',     textAlign: 'center' },
+    'top-right':    { alignItems: 'flex-start', justifyContent: 'flex-end',   textAlign: 'right' },
+    'center-left':  { alignItems: 'center',     justifyContent: 'flex-start', textAlign: 'left' },
+    'center':       { alignItems: 'center',     justifyContent: 'center',     textAlign: 'center' },
+    'center-right': { alignItems: 'center',     justifyContent: 'flex-end',   textAlign: 'right' },
+    'bottom-left':  { alignItems: 'flex-end',   justifyContent: 'flex-start', textAlign: 'left' },
+    'bottom-center':{ alignItems: 'flex-end',   justifyContent: 'center',     textAlign: 'center' },
+    'bottom-right': { alignItems: 'flex-end',   justifyContent: 'flex-end',   textAlign: 'right' },
+  };
+  const pos = posMap[content.textPosition] || posMap['center'];
+  const overlayColor = content.overlayColor || '#000000';
+  const overlayOpacity = content.overlayOpacity ?? 0.5;
+  const r = parseInt(overlayColor.slice(1,3),16);
+  const g = parseInt(overlayColor.slice(3,5),16);
+  const b = parseInt(overlayColor.slice(5,7),16);
+
+  return (
+    <div className="b-image-overlay" style={{
+      backgroundImage: content.imageUrl ? `url(${content.imageUrl})` : undefined,
+    }}>
+      <div className="b-image-overlay-shade" style={{
+        background: `rgba(${r},${g},${b},${overlayOpacity})`,
+      }} />
+      <div className="b-image-overlay-content" style={{
+        alignItems: pos.alignItems,
+        justifyContent: pos.justifyContent,
+        textAlign: pos.textAlign,
+      }}>
+        {content.title && <h2 className="b-image-overlay-title">{content.title}</h2>}
+        {content.subtitle && <p className="b-image-overlay-sub">{content.subtitle}</p>}
+        {content.cta && <button className="b-image-overlay-cta">{content.cta}</button>}
+      </div>
+    </div>
+  );
+}
+
 function renderBlock(item) {
   const c = item.content || {};
   switch (item.type) {
@@ -373,6 +419,7 @@ function renderBlock(item) {
     case 'header-glass':    return <HeaderGlassBlock content={c} />;
     case 'banner':          return <BannerBlock content={c} />;
     case 'hero-split':      return <HeroSplitBlock content={c} />;
+    case 'image-overlay':   return <ImageOverlayBlock content={c} />;
     case 'stats-row':       return <StatsRowBlock content={c} />;
     case 'avatar':          return <AvatarBlock content={c} />;
     case 'price-list':      return <PriceListBlock content={c} />;
@@ -419,7 +466,13 @@ export default function Canvas() {
     e.preventDefault();
   }
 
-  const paperWidth = viewMode === 'mobile' ? 390 : 960;
+  const VIEW_CONFIG = {
+    desktop: { width: 960,  label: '🖥 Desktop',  hint: '960px' },
+    tablet:  { width: 768,  label: '📟 Tablet',   hint: '768px' },
+    mobile:  { width: 390,  label: '📱 Móvil',    hint: '390px' },
+    smarttv: { width: 1920, label: '📺 Smart TV', hint: '1920px' },
+  };
+  const { width: paperWidth, label: deviceLabel, hint: deviceHint } = VIEW_CONFIG[viewMode] || VIEW_CONFIG.desktop;
 
   return (
     <div
@@ -427,7 +480,16 @@ export default function Canvas() {
       onClick={() => selectItem(null)}
       onDragOver={handleDragOver}
     >
-      <div className="canvas-paper" style={{ width: paperWidth }}>
+      {/* Device frame indicator */}
+      <div className="canvas-device-bar">
+        <span className="canvas-device-label">{deviceLabel}</span>
+        <span className="canvas-device-hint">{deviceHint}</span>
+      </div>
+
+      <div
+        className={`canvas-paper canvas-paper--${viewMode}`}
+        style={{ width: paperWidth }}
+      >
         {layout.length === 0 ? (
           <div className="canvas-empty">
             <div className="canvas-empty-icon">🎨</div>

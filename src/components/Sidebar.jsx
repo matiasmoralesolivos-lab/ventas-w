@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBuilderStore } from '../store/useBuilderStore';
 import { RUBROS, BLOCK_DEFINITIONS, BLOCK_CATEGORIES } from '../data/rubrosConfig';
 import MediaUploader from './MediaUploader';
@@ -86,6 +86,30 @@ const gradMap = {
 };
 
 const SOCIAL_PLATFORMS = ['Instagram', 'Facebook', 'Twitter', 'TikTok', 'YouTube', 'LinkedIn', 'Pinterest'];
+
+// ─── Reusable color pickers for bg + text ──────────────────────────────────────
+function ColorPickers({ c, update }) {
+  return (
+    <>
+      <div className="design-field">
+        <label className="design-label">Color de fondo</label>
+        <div className="design-color-row">
+          <input type="color" className="design-color-swatch" value={c.bgColor || '#ffffff'} onChange={e => update({ bgColor: e.target.value })} />
+          <input className="design-input" value={c.bgColor || ''} onChange={e => update({ bgColor: e.target.value })} placeholder="#ffffff" style={{ flex: 1 }} />
+          {c.bgColor && <button onClick={() => update({ bgColor: '' })} className="btn-del" title="Resetear" style={{flexShrink:0}}>↺</button>}
+        </div>
+      </div>
+      <div className="design-field">
+        <label className="design-label">Color de texto</label>
+        <div className="design-color-row">
+          <input type="color" className="design-color-swatch" value={c.textColor || '#1e293b'} onChange={e => update({ textColor: e.target.value })} />
+          <input className="design-input" value={c.textColor || ''} onChange={e => update({ textColor: e.target.value })} placeholder="#1e293b" style={{ flex: 1 }} />
+          {c.textColor && <button onClick={() => update({ textColor: '' })} className="btn-del" title="Resetear" style={{flexShrink:0}}>↺</button>}
+        </div>
+      </div>
+    </>
+  );
+}
 
 function TabDesign() {
   // ✅ FIX: Leer directamente del store para que los cambios sean reactivos
@@ -205,6 +229,7 @@ function TabDesign() {
           )}
           <div className="design-field"><label className="design-label">Links del menú (separados por coma)</label>
             <input className="design-input" value={(c.links||[]).join(', ')} onChange={e=>update({links:e.target.value.split(',').map(l=>l.trim())})} /></div>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -216,6 +241,7 @@ function TabDesign() {
           <div className="design-field"><label className="design-label">Subtítulo</label>
             <input className="design-input" value={c.subtitle||''} onChange={e=>update({subtitle:e.target.value})} /></div>
           <GradPicker />
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -237,6 +263,7 @@ function TabDesign() {
             label="Imagen del hero (opcional)"
           />
           <GradPicker />
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -250,6 +277,7 @@ function TabDesign() {
               <input className="design-input" value={item.label} onChange={e=>updateStat(i,'label',e.target.value)} placeholder="Descripción" />
             </div>
           ))}
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -268,6 +296,7 @@ function TabDesign() {
             <input className="design-input" value={c.subtitle||''} onChange={e=>update({subtitle:e.target.value})} /></div>
           <div className="design-field"><label className="design-label">Puntuación (1-5)</label>
             <input className="design-input" type="number" min="1" max="5" step="0.1" value={c.rating||5} onChange={e=>update({rating:parseFloat(e.target.value)})} /></div>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -287,6 +316,7 @@ function TabDesign() {
             </div>
           ))}
           <button onClick={addPriceItem} className="block-btn" style={{justifyContent:'center',color:'var(--accent-2)'}}>+ Agregar ítem</button>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -311,6 +341,7 @@ function TabDesign() {
             </div>
           ))}
           <button onClick={addPlan} className="block-btn" style={{justifyContent:'center',color:'var(--accent-2)'}}>+ Agregar plan</button>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -328,6 +359,7 @@ function TabDesign() {
               <input className="design-input" value={item.desc} onChange={e=>updateIconItem(i,'desc',e.target.value)} placeholder="Descripción corta" />
             </div>
           ))}
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -343,6 +375,7 @@ function TabDesign() {
             </div>
           ))}
           <button onClick={()=>update({items:[...(c.items||[]),{text:'Nuevo beneficio'}]})} className="block-btn" style={{justifyContent:'center',color:'var(--accent-2)'}}>+ Agregar</button>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -353,6 +386,7 @@ function TabDesign() {
             <input className="design-input" value={c.text||''} onChange={e=>update({text:e.target.value})} /></div>
           <div className="design-field"><label className="design-label">Número (con código país)</label>
             <input className="design-input" value={c.phone||''} onChange={e=>update({phone:e.target.value})} placeholder="5491112345678" /></div>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -375,6 +409,7 @@ function TabDesign() {
             accept="image"
             label="Imágenes de productos"
           />
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -397,6 +432,7 @@ function TabDesign() {
             accept="both"
             label="Fotos y videos de la galería"
           />
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -413,6 +449,7 @@ function TabDesign() {
             <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} /></div>
           <div className="design-field"><label className="design-label">Texto</label>
             <textarea className="design-input" rows="5" value={c.text||''} onChange={e=>update({text:e.target.value})} /></div>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -432,6 +469,7 @@ function TabDesign() {
             </div>
           ))}
           <button onClick={addSocialLink} className="block-btn" style={{justifyContent:'center',color:'var(--accent-2)'}}>+ Agregar red</button>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -442,6 +480,7 @@ function TabDesign() {
             <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} /></div>
           <div className="design-field"><label className="design-label">Zonas (separadas por coma)</label>
             <input className="design-input" value={(c.zones||[]).join(', ')} onChange={e=>update({zones:e.target.value.split(',').map(z=>z.trim())})} /></div>
+          <ColorPickers c={c} update={update} />
         </>
       )}
 
@@ -458,6 +497,51 @@ function TabDesign() {
             <input className="design-input" value={c.embedUrl||''} onChange={e=>update({embedUrl:e.target.value})} placeholder="https://youtube.com/watch?v=..." /></div>
           <div className="design-field"><label className="design-label">Título del video (opcional)</label>
             <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} /></div>
+          <ColorPickers c={c} update={update} />
+        </>
+      )}
+
+      {/* Image Overlay */}
+      {selectedItem.type === 'image-overlay' && (
+        <>
+          <MediaUploader
+            value={c.imageUrl || null}
+            onChange={url => update({ imageUrl: url })}
+            accept="image"
+            label="Imagen de fondo"
+          />
+          <div className="design-field"><label className="design-label">Título</label>
+            <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} /></div>
+          <div className="design-field"><label className="design-label">Subtítulo</label>
+            <textarea className="design-input" rows="3" value={c.subtitle||''} onChange={e=>update({subtitle:e.target.value})} /></div>
+          <div className="design-field"><label className="design-label">Texto del botón (CTA)</label>
+            <input className="design-input" value={c.cta||''} onChange={e=>update({cta:e.target.value})} /></div>
+
+          <div className="design-field"><label className="design-label">Color del overlay</label>
+            <div className="design-color-row">
+              <input type="color" className="design-color-swatch" value={c.overlayColor||'#000000'} onChange={e=>update({overlayColor:e.target.value})} />
+              <input className="design-input" value={c.overlayColor||''} onChange={e=>update({overlayColor:e.target.value})} placeholder="#000000" style={{flex:1}} />
+            </div>
+          </div>
+
+          <div className="design-field"><label className="design-label">Opacidad del overlay: {Math.round((c.overlayOpacity ?? 0.5) * 100)}%</label>
+            <input type="range" min="0" max="1" step="0.05" value={c.overlayOpacity ?? 0.5} onChange={e=>update({overlayOpacity:parseFloat(e.target.value)})} style={{width:'100%'}} /></div>
+
+          <div className="design-field"><label className="design-label">Posición del texto</label>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:4}}>
+              {['top-left','top-center','top-right','center-left','center','center-right','bottom-left','bottom-center','bottom-right'].map(pos=>(
+                <button key={pos} onClick={()=>update({textPosition:pos})}
+                  style={{padding:'6px 0',borderRadius:6,fontSize:11,border:'none',cursor:'pointer',
+                    background:(c.textPosition||'center')===pos ? 'var(--accent-2)' : 'var(--surface)',
+                    color:(c.textPosition||'center')===pos ? '#fff' : 'var(--text-secondary)',
+                    fontWeight:(c.textPosition||'center')===pos ? 700 : 400,
+                  }}>
+                  {pos.replace('-',' ')}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ColorPickers c={c} update={update} />
         </>
       )}
     </div>
@@ -497,10 +581,20 @@ function TabPage() {
 export default function Sidebar() {
   const [tab, setTab] = useState('add');
   // ✅ FIX: sólo necesitamos rubro, templateId y selectedItemId del store a nivel Sidebar
-  const { rubro, templateId, selectedItemId } = useBuilderStore();
+  const { rubro, templateId, selectedItemId, selectItem } = useBuilderStore();
 
-  // Auto-switch to Design tab when a block is selected
-  const activeTab = selectedItemId && tab === 'add' ? 'design' : tab;
+  useEffect(() => {
+    if (selectedItemId) {
+      setTab('design');
+    }
+  }, [selectedItemId]);
+
+  const handleTabClick = (tId) => {
+    if (tId === 'add' || tId === 'page') {
+      selectItem(null);
+    }
+    setTab(tId);
+  };
 
   return (
     <div className="sidebar">
@@ -512,8 +606,8 @@ export default function Sidebar() {
         ].map(t => (
           <button
             key={t.id}
-            className={`sidebar-tab${activeTab === t.id ? ' active' : ''}`}
-            onClick={() => setTab(t.id)}
+            className={`sidebar-tab${tab === t.id ? ' active' : ''}`}
+            onClick={() => handleTabClick(t.id)}
             title={t.title}
           >
             {t.label} <span className="sidebar-tab-label">{t.title}</span>
@@ -521,9 +615,9 @@ export default function Sidebar() {
         ))}
       </div>
       <div className="sidebar-content">
-        {activeTab === 'add'    && <TabAdd rubro={rubro} templateId={templateId} />}
-        {activeTab === 'design' && <TabDesign />}
-        {activeTab === 'page'   && <TabPage />}
+        {tab === 'add'    && <TabAdd rubro={rubro} templateId={templateId} />}
+        {tab === 'design' && <TabDesign />}
+        {tab === 'page'   && <TabPage />}
       </div>
     </div>
   );

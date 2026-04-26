@@ -145,11 +145,10 @@ app.use((err, req, res, next) => {
 });
 
 const DIST_PATH = path.join(__dirname, "../dist");
-
 if (fs.existsSync(DIST_PATH)) {
   app.use(express.static(DIST_PATH));
 
-  app.get("*", (req, res) => {
+  app.use((req, res) => {
     res.sendFile(path.join(DIST_PATH, "index.html"));
   });
 }

@@ -42,7 +42,7 @@ export const useBuilderStore = create((set, get) => ({
   layout: saved?.layout || [],
   selectedItemId: null,
   isPreviewMode: false,
-  viewMode: "desktop", // 'desktop' | 'mobile'
+  viewMode: "desktop", // 'desktop' | 'tablet' | 'mobile' | 'smarttv'
   draggingType: null,   // tipo de bloque que se está arrastrando desde la sidebar
 
   // Historial undo/redo
@@ -218,6 +218,11 @@ function getDefaultContent(type) {
     'hero-split': {
       title: 'Tu Propuesta de Valor', subtitle: 'Describí tu servicio principal en pocas palabras.',
       badge: '✨ Nuevo', cta: 'Contactar ahora', gradient: 'blue',
+    },
+    'image-overlay': {
+      title: 'Tu Título Aquí', subtitle: 'Añadí una descripción sobre la imagen',
+      cta: 'Ver más', imageUrl: null, overlayOpacity: 0.5, overlayColor: '#000000',
+      textAlign: 'center', textPosition: 'center',
     },
     'stats-row': {
       items: [

@@ -61,17 +61,27 @@ export default function TopBar() {
       <div className="topbar-divider" />
 
       {/* View mode toggle */}
-      <div className="topbar-btn-group">
+      <div className="topbar-btn-group topbar-device-group">
         <button
           className={`btn btn-icon${viewMode === 'desktop' ? ' btn-view-active' : ''}`}
           onClick={() => setViewMode('desktop')}
-          title="Vista desktop"
+          title="Vista Desktop (960px)"
         >🖥</button>
+        <button
+          className={`btn btn-icon${viewMode === 'tablet' ? ' btn-view-active' : ''}`}
+          onClick={() => setViewMode('tablet')}
+          title="Vista Tablet (768px)"
+        >📟</button>
         <button
           className={`btn btn-icon${viewMode === 'mobile' ? ' btn-view-active' : ''}`}
           onClick={() => setViewMode('mobile')}
-          title="Vista móvil"
+          title="Vista Móvil (390px)"
         >📱</button>
+        <button
+          className={`btn btn-icon${viewMode === 'smarttv' ? ' btn-view-active' : ''}`}
+          onClick={() => setViewMode('smarttv')}
+          title="Vista Smart TV (1920px)"
+        >📺</button>
       </div>
 
       <div className="topbar-divider" />
