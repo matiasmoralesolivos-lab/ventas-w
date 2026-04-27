@@ -10,7 +10,15 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+// Trust proxy es esencial para obtener el protocolo correcto ('https') cuando
+// la aplicación se encuentra detrás del proxy inverso de Render.
+app.set("trust proxy", 1);
+
+// Helper para obtener el URL dinámico dependiendo de la petición.
+const getBaseUrl = (req) => {
+  return process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+};
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 app.use(cors());
@@ -75,7 +83,8 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
   }
   const isVideo = req.file.mimetype.startsWith("video/");
   const subdir = isVideo ? "videos" : "images";
-  const url = `${BASE_URL}/uploads/${subdir}/${req.file.filename}`;
+  const baseUrl = getBaseUrl(req);
+  const url = `${baseUrl}/uploads/${subdir}/${req.file.filename}`;
   res.json({
     url,
     filename: req.file.filename,
@@ -91,11 +100,12 @@ app.post("/api/upload-multiple", upload.array("files", 20), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: "No se recibieron archivos." });
   }
+  const baseUrl = getBaseUrl(req);
   const results = req.files.map((file) => {
     const isVideo = file.mimetype.startsWith("video/");
     const subdir = isVideo ? "videos" : "images";
     return {
-      url: `${BASE_URL}/uploads/${subdir}/${file.filename}`,
+      url: `${baseUrl}/uploads/${subdir}/${file.filename}`,
       filename: file.filename,
       originalname: file.originalname,
       mimetype: file.mimetype,
@@ -122,13 +132,14 @@ app.delete("/api/upload/:type/:filename", (req, res) => {
 
 // Listar todos los archivos subidos
 app.get("/api/uploads", (req, res) => {
+  const baseUrl = getBaseUrl(req);
   const images = fs.readdirSync(IMAGES_DIR).map((f) => ({
-    url: `${BASE_URL}/uploads/images/${f}`,
+    url: `${baseUrl}/uploads/images/${f}`,
     filename: f,
     type: "image",
   }));
   const videos = fs.readdirSync(VIDEOS_DIR).map((f) => ({
-    url: `${BASE_URL}/uploads/videos/${f}`,
+    url: `${baseUrl}/uploads/videos/${f}`,
     filename: f,
     type: "video",
   }));
