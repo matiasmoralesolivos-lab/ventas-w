@@ -1,7 +1,8 @@
 import GridLayout from 'react-grid-layout';
 import { useBuilderStore } from '../store/useBuilderStore';
 import { BLOCK_DEFINITIONS } from '../data/rubrosConfig';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRef, useEffect, useState } from 'react';
 import '/node_modules/react-grid-layout/css/styles.css';
 import '/node_modules/react-resizable/css/styles.css';
 
@@ -530,6 +531,32 @@ function renderBlock(item) {
   }
 }
 
+// ─── Toast notification ──────────────────────────────────────────────────────
+function Toast({ message, onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2200);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -16, scale: 0.9 }}
+      transition={{ duration: 0.25 }}
+      style={{
+        position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+        background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+        color: '#fff', padding: '10px 22px', borderRadius: 40,
+        fontWeight: 600, fontSize: 14, zIndex: 9999,
+        boxShadow: '0 8px 32px rgba(99,102,241,.45)',
+        pointerEvents: 'none', whiteSpace: 'nowrap',
+      }}
+    >
+      {message}
+    </motion.div>
+  );
+}
+
 // ─── Canvas principal ──────────────────────────────────────────────────────────
 
 export default function Canvas() {
@@ -537,6 +564,28 @@ export default function Canvas() {
     layout, updateLayout, removeItem, selectItem, selectedItemId,
     isPreviewMode, viewMode, draggingType, addElement, setDraggingType,
   } = useBuilderStore();
+
+  const [toast, setToast] = useState(null);
+  const prevLayoutLen = useRef(layout.length);
+  const lastItemRef = useRef(null);
+
+  // Auto-scroll + toast when a block is added
+  useEffect(() => {
+    if (layout.length > prevLayoutLen.current) {
+      const added = layout[layout.length - 1];
+      const def = BLOCK_DEFINITIONS[added?.type];
+      if (def) {
+        setToast(`✅ Bloque "${def.label}" agregado`);
+        // scroll the new block into view
+        setTimeout(() => {
+          if (lastItemRef.current) {
+            lastItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 80);
+      }
+    }
+    prevLayoutLen.current = layout.length;
+  }, [layout.length]);
 
   const def = draggingType ? BLOCK_DEFINITIONS[draggingType] : null;
   const droppingItem = def
@@ -555,6 +604,15 @@ export default function Canvas() {
     addElement(type, { x: item.x, y: item.y });
   }
 
+  // Drop on empty canvas
+  function handleEmptyDrop(e) {
+    e.preventDefault();
+    const type = e.dataTransfer?.getData('blockType') || draggingType;
+    if (!type) return;
+    setDraggingType(null);
+    addElement(type, { x: 0, y: 0 });
+  }
+
   function handleDragOver(e) {
     e.preventDefault();
   }
@@ -568,70 +626,83 @@ export default function Canvas() {
   const { width: paperWidth } = VIEW_CONFIG[viewMode] || VIEW_CONFIG.desktop;
 
   return (
-    <div
-      className={`canvas-area${draggingType ? ' canvas-dropping' : ''}`}
-      onClick={() => selectItem(null)}
-      onDragOver={handleDragOver}
-    >
-      <div className={`canvas-paper canvas-paper--${viewMode}`}
-        style={{ width: paperWidth }}
+    <>
+      <div
+        className={`canvas-area${draggingType ? ' canvas-dropping' : ''}`}
+        onClick={() => selectItem(null)}
+        onDragOver={handleDragOver}
       >
-        {layout.length === 0 ? (
-          <div className="canvas-empty">
-            <div className="canvas-empty-icon">🎨</div>
-            <p>Tu página está en blanco.</p>
-            <p style={{ fontSize: 13, color: '#9ca3af' }}>
-              {draggingType ? '¡Soltá aquí para agregar!' : 'Arrastrá o hacé clic en un bloque →'}
-            </p>
-          </div>
-        ) : (
-          <GridLayout
-            className="layout"
-            layout={layout}
-            cols={12}
-            rowHeight={40}
-            width={paperWidth}
-            onLayoutChange={updateLayout}
-            draggableHandle=".drag-handle"
-            margin={[0, 0]}
-            isDraggable={!isPreviewMode}
-            isResizable={!isPreviewMode}
-            isDroppable={!isPreviewMode}
-            droppingItem={droppingItem}
-            onDrop={handleDrop}
-          >
-            {layout.map((item) => {
-              const isSelected = selectedItemId === item.i;
-              return (
-                <div
-                  key={item.i}
-                  onClick={(e) => !isPreviewMode && handleSelect(e, item.i)}
-                  style={{ cursor: isPreviewMode ? 'default' : 'pointer' }}
-                >
+        <div className={`canvas-paper canvas-paper--${viewMode}`}
+          style={{ width: paperWidth }}
+        >
+          {layout.length === 0 ? (
+            <div
+              className={`canvas-empty${draggingType ? ' canvas-empty--active' : ''}`}
+              onDrop={handleEmptyDrop}
+              onDragOver={handleDragOver}
+            >
+              <div className="canvas-empty-icon">🎨</div>
+              <p>Tu página está en blanco.</p>
+              <p style={{ fontSize: 13, color: '#9ca3af' }}>
+                {draggingType ? '¡Soltá aquí para agregar!' : 'Arrastrá o hacé clic en un bloque →'}
+              </p>
+            </div>
+          ) : (
+            <GridLayout
+              className="layout"
+              layout={layout}
+              cols={12}
+              rowHeight={40}
+              width={paperWidth}
+              onLayoutChange={updateLayout}
+              draggableHandle=".drag-handle"
+              margin={[0, 0]}
+              isDraggable={!isPreviewMode}
+              isResizable={!isPreviewMode}
+              isDroppable={!isPreviewMode}
+              droppingItem={droppingItem}
+              onDrop={handleDrop}
+            >
+              {layout.map((item, idx) => {
+                const isSelected = selectedItemId === item.i;
+                const isLast = idx === layout.length - 1;
+                return (
                   <div
-                    className={`block-wrapper${isSelected ? ' block-selected' : ''}`}
+                    key={item.i}
+                    ref={isLast ? lastItemRef : null}
+                    onClick={(e) => !isPreviewMode && handleSelect(e, item.i)}
+                    style={{ cursor: isPreviewMode ? 'default' : 'pointer' }}
                   >
-                    {!isPreviewMode && (
-                      <div className="block-controls">
-                        <button
-                          className="block-ctrl-btn block-ctrl-drag drag-handle"
-                          title="Mover"
-                        >⠿</button>
-                        <button
-                          className="block-ctrl-btn block-ctrl-del"
-                          onClick={(e) => { e.stopPropagation(); removeItem(item.i); }}
-                          title="Eliminar bloque"
-                        >×</button>
-                      </div>
-                    )}
-                    {renderBlock(item)}
+                    <div
+                      className={`block-wrapper${isSelected ? ' block-selected' : ''}`}
+                    >
+                      {!isPreviewMode && (
+                        <div className="block-controls">
+                          <button
+                            className="block-ctrl-btn block-ctrl-drag drag-handle"
+                            title="Mover"
+                          >⠿</button>
+                          <button
+                            className="block-ctrl-btn block-ctrl-del"
+                            onClick={(e) => { e.stopPropagation(); removeItem(item.i); }}
+                            title="Eliminar bloque"
+                          >×</button>
+                        </div>
+                      )}
+                      {renderBlock(item)}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </GridLayout>
-        )}
+                );
+              })}
+            </GridLayout>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Toast portal */}
+      <AnimatePresence>
+        {toast && <Toast key={toast} message={toast} onDone={() => setToast(null)} />}
+      </AnimatePresence>
+    </>
   );
 }

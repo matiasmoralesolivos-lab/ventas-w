@@ -8,17 +8,18 @@ import Sidebar from './components/Sidebar';
 
 export default function App() {
   const rubro = useBuilderStore(s => s.rubro);
+  const isPreviewMode = useBuilderStore(s => s.isPreviewMode);
   useKeyboardShortcuts();
 
   // Si no hay rubro elegido, mostrar onboarding
   if (!rubro) return <OnboardingScreen />;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isPreviewMode ? ' app-preview' : ''}`}>
       <TopBar />
       <div className="builder-body">
         <Canvas />
-        <Sidebar />
+        {!isPreviewMode && <Sidebar />}
       </div>
     </div>
   );
