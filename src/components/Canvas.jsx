@@ -234,7 +234,7 @@ function PriceListBlock({ item }) {
       <DraggableText blockId={item.i} elementKey="title" as="h3" style={{ color: content.textColor || undefined }}>{content.title}</DraggableText>
       {(content.items || []).map((it, i) => (
         <div key={i} className="b-pricelist-item">
-          <DraggableText blockId={item.i} elementKey={`price-label-${i}`} as="span" style={{ color: content.textColor || undefined }}>{it.label}</DraggableText>
+          <DraggableText blockId={item.i} elementKey={`price-label-${i}`} as="span" style={{ color: content.textColor || undefined }}>{it.label || it.name}</DraggableText>
           <DraggableText blockId={item.i} elementKey={`price-val-${i}`} as="b" style={{ color: content.textColor || undefined }}>{it.price}</DraggableText>
         </div>
       ))}

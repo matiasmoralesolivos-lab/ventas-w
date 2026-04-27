@@ -329,9 +329,9 @@ function TabDesign() {
           <p className="sidebar-section-title">Ítems</p>
           {(c.items||[]).map((item,i)=>(
             <div key={i} style={{marginBottom:10,background:'var(--surface)',borderRadius:8,padding:10}}>
-              <input className="design-input" value={item.label} onChange={e=>updatePriceItem(i,'label',e.target.value)} placeholder="Servicio" style={{marginBottom:6}} />
+              <input className="design-input" value={item.label || item.name || ''} onChange={e=>updatePriceItem(i,'label',e.target.value)} placeholder="Servicio" style={{marginBottom:6}} />
               <div style={{display:'flex',gap:6}}>
-                <input className="design-input" value={item.price} onChange={e=>updatePriceItem(i,'price',e.target.value)} placeholder="$0" style={{flex:1}} />
+                <input className="design-input" value={item.price || ''} onChange={e=>updatePriceItem(i,'price',e.target.value)} placeholder="$0" style={{flex:1}} />
                 <button onClick={()=>removePriceItem(i)} className="btn-del">×</button>
               </div>
             </div>

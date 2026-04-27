@@ -10,8 +10,8 @@ function loadInitialState() {
     if (saved) {
       const parsed = JSON.parse(saved);
       return {
-        rubro: parsed.rubro || null,
-        templateId: parsed.templateId || null,
+        rubro: null, // Forzar a mostrar onboarding al abrir el proyecto
+        templateId: null,
         layout: parsed.layout || [],
         pageConfig: parsed.pageConfig || defaultPageConfig(),
       };
