@@ -249,7 +249,14 @@ function TabDesign() {
           <div className="design-field"><label className="design-label">Subtítulo</label>
             <input className="design-input" value={c.subtitle||''} onChange={e=>update({subtitle:e.target.value})} /></div>
           <GradPicker />
-          <ColorPickers c={c} update={update} />
+          <div className="design-field">
+            <label className="design-label">Color de texto</label>
+            <div className="design-color-row">
+              <input type="color" className="design-color-swatch" value={c.textColor || '#ffffff'} onChange={e => update({ textColor: e.target.value })} />
+              <input className="design-input" value={c.textColor || ''} onChange={e => update({ textColor: e.target.value })} placeholder="#ffffff" style={{ flex: 1 }} />
+              {c.textColor && <button onClick={() => update({ textColor: '' })} className="btn-del" title="Resetear" style={{flexShrink:0}}>↺</button>}
+            </div>
+          </div>
         </>
       )}
 

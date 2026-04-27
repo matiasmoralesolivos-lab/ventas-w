@@ -97,7 +97,7 @@ body { font-family: 'Inter', sans-serif; background: var(--editor-bg); color: va
   background: #fff; border-radius: 16px;
   box-shadow: 0 0 0 1px rgba(255,255,255,.1), var(--shadow);
   width: 960px; min-height: 1100px; flex-shrink: 0;
-  overflow: visible; position: relative;
+  overflow: hidden; position: relative;
   transition: box-shadow .3s;
 }
 .canvas-empty {
@@ -108,7 +108,7 @@ body { font-family: 'Inter', sans-serif; background: var(--editor-bg); color: va
 .canvas-empty p { font-size: 15px; }
 
 /* ── Bloques ── */
-.block-wrapper { position: relative; width: 100%; height: 100%; }
+.block-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
 .block-wrapper:hover .block-controls { opacity: 1; }
 .block-controls {
   position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;
@@ -125,14 +125,67 @@ body { font-family: 'Inter', sans-serif; background: var(--editor-bg); color: va
 .block-ctrl-del:hover  { background: #ef4444; }
 .block-selected-ring { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
+/* ── Block: Header (todas las variantes) ── */
+.b-header {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; gap: 12px;
+  overflow: hidden; position: relative;
+  cursor: pointer; box-sizing: border-box;
+}
+.b-header-minimal { background: #fff; }
+.b-header-centered {
+  flex-direction: column; justify-content: center;
+  text-align: center; background: #f8fafc; gap: 4px;
+}
+.b-header-glass {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+.b-header-logo {
+  max-width: 120px; max-height: 48px;
+  width: auto; height: auto;
+  object-fit: contain; display: block; flex-shrink: 0;
+}
+.b-header-brand {
+  font-size: clamp(13px, 2vw, 20px); font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 200px; flex-shrink: 1;
+  color: #1e293b;
+}
+.b-header-tagline {
+  font-size: 12px; color: #64748b;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+.b-header-nav {
+  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+  overflow: hidden; flex-shrink: 1;
+}
+.b-header-nav a {
+  font-size: clamp(11px, 1.2vw, 14px); font-weight: 500; color: #374151;
+  text-decoration: none; white-space: nowrap;
+  transition: color .2s;
+}
+.b-header-nav a:hover { color: #6366f1; }
+
 /* ── Block: Banner ── */
 .b-banner {
   width: 100%; height: 100%; display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center;
   position: relative; cursor: pointer; overflow: hidden;
 }
-.b-banner h1 { font-size: clamp(20px,4vw,40px); font-weight: 800; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.3); line-height: 1.2; }
-.b-banner p  { font-size: clamp(12px,2vw,18px); color: rgba(255,255,255,.85); margin-top: 10px; }
+.b-banner h1 {
+  font-size: clamp(20px,4vw,40px); font-weight: 800;
+  text-shadow: 0 2px 12px rgba(0,0,0,.3); line-height: 1.2;
+  word-break: break-word; overflow-wrap: break-word; max-width: 100%;
+}
+.b-banner p  {
+  font-size: clamp(12px,2vw,18px); margin-top: 10px;
+  word-break: break-word; overflow-wrap: break-word; max-width: 100%;
+}
 
 /* ── Block: Avatar ── */
 .b-avatar {
@@ -154,12 +207,12 @@ body { font-family: 'Inter', sans-serif; background: var(--editor-bg); color: va
 .b-avatar-rating { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #f59e0b; font-weight: 600; }
 
 /* ── Block: Price List ── */
-.b-pricelist { width: 100%; height: 100%; padding: 20px; background: #fff; cursor: pointer; }
-.b-pricelist h3 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; }
-.b-pricelist-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+.b-pricelist { width: 100%; height: 100%; padding: 20px; background: #fff; cursor: pointer; overflow: hidden; }
+.b-pricelist h3 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; word-break: break-word; }
+.b-pricelist-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; gap: 8px; }
 .b-pricelist-item:last-child { border-bottom: none; }
-.b-pricelist-item span { color: #475569; }
-.b-pricelist-item b { color: #1e293b; font-weight: 700; background: #f0fdf4; padding: 2px 8px; border-radius: 6px; color: #16a34a; }
+.b-pricelist-item span { color: #475569; word-break: break-word; min-width: 0; flex: 1; }
+.b-pricelist-item b { font-weight: 700; background: #f0fdf4; padding: 2px 8px; border-radius: 6px; color: #16a34a; white-space: nowrap; flex-shrink: 0; }
 
 /* ── Block: WhatsApp CTA ── */
 .b-whatsapp {
@@ -187,17 +240,17 @@ body { font-family: 'Inter', sans-serif; background: var(--editor-bg); color: va
 
 /* ── Block: Bio ── */
 .b-bio { width: 100%; height: 100%; background: #fff; cursor: pointer; position: relative; overflow: hidden; }
-.b-bio h3 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
-.b-bio p { font-size: 14px; line-height: 1.7; color: #475569; }
+.b-bio h3 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 12px; word-break: break-word; overflow-wrap: break-word; }
+.b-bio p { font-size: 14px; line-height: 1.7; color: #475569; word-break: break-word; overflow-wrap: break-word; }
 
 /* ── Block: Social Links ── */
 .b-social { width: 100%; height: 100%; background: #fafafa; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px; flex-wrap: wrap; cursor: pointer; }
 .b-social-pill { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 600; color: #fff; }
 
 /* ── Block: Coverage ── */
-.b-coverage { width: 100%; height: 100%; padding: 20px; background: #fff; cursor: pointer; }
-.b-coverage h3 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
-.b-coverage-zone { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 99px; background: #eff6ff; color: #3b82f6; font-size: 12px; font-weight: 600; margin: 4px; }
+.b-coverage { width: 100%; height: 100%; padding: 20px; background: #fff; cursor: pointer; overflow: hidden; }
+.b-coverage h3 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; word-break: break-word; }
+.b-coverage-zone { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 99px; background: #eff6ff; color: #3b82f6; font-size: 12px; font-weight: 600; margin: 4px; word-break: break-word; }
 
 /* ── Sidebar ── */
 .sidebar {

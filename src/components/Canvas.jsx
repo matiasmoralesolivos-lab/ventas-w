@@ -12,7 +12,13 @@ function DraggableText({ blockId, elementKey, as = 'div', className, style, chil
   const pos = positions[elementKey] || { x: 0, y: 0 };
   const hasMoved = pos.x !== 0 || pos.y !== 0;
 
+  const handleDragStart = () => {
+    // Make the entire page cursor show 'grabbing' so it follows the mouse pointer
+    document.body.style.cursor = 'grabbing';
+  };
+
   const handleDragEnd = (e, info) => {
+    document.body.style.cursor = '';
     const newX = pos.x + info.offset.x;
     const newY = pos.y + info.offset.y;
     updateItemContent(blockId, {
@@ -30,7 +36,9 @@ function DraggableText({ blockId, elementKey, as = 'div', className, style, chil
       drag={!isPreviewMode}
       dragMomentum={false}
       dragElastic={0}
+      dragConstraints={{ top: -200, bottom: 200, left: -400, right: 400 }}
       animate={{ x: pos.x, y: pos.y }}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onPointerDown={(e) => { if (!isPreviewMode) e.stopPropagation(); }}
       style={{ 
@@ -39,9 +47,11 @@ function DraggableText({ blockId, elementKey, as = 'div', className, style, chil
         zIndex: hasMoved ? 20 : 1,
         cursor: isPreviewMode ? 'default' : 'grab',
         userSelect: 'none',
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
+        maxWidth: '100%',
         ...style 
       }}
-      whileDrag={{ cursor: 'grabbing', zIndex: 999 }}
       className={className}
       {...props}
     >
@@ -84,10 +94,12 @@ function HeaderMinimalBlock({ item }) {
   const content = item.content || {};
   return (
     <div className="b-header b-header-minimal" style={{ background: content.bgColor || undefined, color: content.textColor || undefined, position: 'relative' }}>
-      {content.logoUrl
-        ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
-      }
+      {content.logoUrl && (
+        <img src={content.logoUrl} alt="Logo" className="b-header-logo" style={{ maxWidth: '120px', maxHeight: '48px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', flexShrink: 0 }} />
+      )}
+      {content.brand && (
+        <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
+      )}
       <nav className="b-header-nav">
         {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
       </nav>
@@ -99,10 +111,12 @@ function HeaderCenteredBlock({ item }) {
   const content = item.content || {};
   return (
     <div className="b-header b-header-centered" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      {content.logoUrl
-        ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
-      }
+      {content.logoUrl && (
+        <img src={content.logoUrl} alt="Logo" className="b-header-logo" style={{ maxWidth: '160px', maxHeight: '60px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', flexShrink: 0 }} />
+      )}
+      {content.brand && (
+        <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
+      )}
       {content.tagline && <DraggableText blockId={item.i} elementKey="tagline" as="span" className="b-header-tagline" style={{ color: content.textColor || undefined }}>{content.tagline}</DraggableText>}
       <nav className="b-header-nav">
         {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
@@ -115,10 +129,12 @@ function HeaderGlassBlock({ item }) {
   const content = item.content || {};
   return (
     <div className="b-header b-header-glass" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      {content.logoUrl
-        ? <img src={content.logoUrl} alt="Logo" className="b-header-logo" />
-        : <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
-      }
+      {content.logoUrl && (
+        <img src={content.logoUrl} alt="Logo" className="b-header-logo" style={{ maxWidth: '120px', maxHeight: '48px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', flexShrink: 0 }} />
+      )}
+      {content.brand && (
+        <DraggableText blockId={item.i} elementKey="brand" as="span" className="b-header-brand" style={{ color: content.textColor || undefined }}>{content.brand}</DraggableText>
+      )}
       <nav className="b-header-nav">
         {(content.links || []).map((l, i) => <a key={i} href="#" style={{ color: content.textColor || undefined }}>{l}</a>)}
       </nav>
@@ -128,18 +144,20 @@ function HeaderGlassBlock({ item }) {
 
 function BannerBlock({ item }) {
   const content = item.content || {};
-  const bg = GRADIENTS[content.gradient] || GRADIENTS.blue;
+  // If a solid bgColor is set, use it; otherwise use gradient
+  const bg = content.bgColor ? content.bgColor : (GRADIENTS[content.gradient] || GRADIENTS.blue);
+  const textColor = content.textColor || '#ffffff';
   return (
-    <div className="b-banner" style={{ background: content.imageUrl ? undefined : bg, position: 'relative' }}>
+    <div className="b-banner" style={{ background: content.imageUrl ? undefined : bg, position: 'relative', overflow: 'hidden' }}>
       {content.imageUrl && (
         <>
           <img src={content.imageUrl} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', display:'block', zIndex:0 }} />
           <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1, pointerEvents:'none' }} />
         </>
       )}
-      <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', width:'100%', height:'100%', gap:8 }}>
-        <DraggableText blockId={item.i} elementKey="title" as="h1">{content.title}</DraggableText>
-        {content.subtitle && <DraggableText blockId={item.i} elementKey="subtitle" as="p">{content.subtitle}</DraggableText>}
+      <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', width:'100%', height:'100%', gap:8, padding:'16px' }}>
+        <DraggableText blockId={item.i} elementKey="title" as="h1" style={{ color: textColor }}>{content.title}</DraggableText>
+        {content.subtitle && <DraggableText blockId={item.i} elementKey="subtitle" as="p" style={{ color: textColor }}>{content.subtitle}</DraggableText>}
       </div>
     </div>
   );
