@@ -5,7 +5,7 @@ import MediaUploader from './MediaUploader';
 
 // ─── Tab: Añadir bloques ───────────────────────────────────────────────────────
 function TabAdd({ rubro, templateId }) {
-  const { addElement, setDraggingType } = useBuilderStore();
+  const { addElement, setDraggingType, draggingType } = useBuilderStore();
   const [activeCategory, setActiveCategory] = useState('info');
 
   const rubroObj = RUBROS.find(r => r.id === rubro);
@@ -57,7 +57,7 @@ function TabAdd({ rubro, templateId }) {
         return (
           <button
             key={key}
-            className="block-btn droppableElement"
+            className={`block-btn droppableElement${draggingType === key ? ' is-dragging' : ''}`}
             draggable={true}
             unselectable="on"
             onDragStart={(e) => handleDragStart(e, key)}
@@ -68,11 +68,12 @@ function TabAdd({ rubro, templateId }) {
             <span className="block-btn-icon">{def.emoji}</span>
             <div>
               <div className="block-btn-label">{def.label}</div>
-              <div className="block-btn-sub">Arrastrar o clic</div>
+              <div className="block-btn-sub">Arrastrá o clic para añadir</div>
             </div>
           </button>
         );
       })}
+
     </div>
   );
 }
@@ -86,7 +87,14 @@ const gradMap = {
   green:['#22c55e','#14b8a6'],
 };
 
-const SOCIAL_PLATFORMS = ['Instagram', 'Facebook', 'Twitter', 'TikTok', 'YouTube', 'LinkedIn', 'Pinterest'];
+const SOCIAL_PLATFORMS = ['Instagram', 'Facebook', 'Twitter', 'TikTok', 'YouTube', 'LinkedIn', 'Pinterest', 'WhatsApp'];
+
+const BADGE_ICONS = [
+  '🚀','⭐','🔥','💡','✅','🏆','🎯','💎','⚡','🌟',
+  '🎨','🔑','💪','🛡️','🌈','🎪','🏅','🎖️','💫','🌀',
+  '✨','🎉','🎊','🎁','🎗️','🔔','📣','💬','📱','🖥️',
+  '🛒','🤝','🌍','🌿','⚙️','🔧','📊','📈','📋','🗂️'
+];
 
 // ─── Reusable color pickers for bg + text ──────────────────────────────────────
 function ColorPickers({ c, update }) {
@@ -248,7 +256,21 @@ function TabDesign() {
             <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} /></div>
           <div className="design-field"><label className="design-label">Subtítulo</label>
             <input className="design-input" value={c.subtitle||''} onChange={e=>update({subtitle:e.target.value})} /></div>
+          <MediaUploader
+            value={c.imageUrl || null}
+            onChange={url => update({ imageUrl: url })}
+            accept="image"
+            label="Imagen de fondo (opcional)"
+          />
           <GradPicker />
+          <div className="design-field">
+            <label className="design-label">Color de fondo sólido <small style={{color:'var(--text-muted)'}}>(reemplaza gradiente)</small></label>
+            <div className="design-color-row">
+              <input type="color" className="design-color-swatch" value={c.bgColor || '#3b82f6'} onChange={e => update({ bgColor: e.target.value })} />
+              <input className="design-input" value={c.bgColor || ''} onChange={e => update({ bgColor: e.target.value })} placeholder="Dejar vacío para gradiente" style={{ flex: 1 }} />
+              {c.bgColor && <button onClick={() => update({ bgColor: '' })} className="btn-del" title="Resetear" style={{flexShrink:0}}>↺</button>}
+            </div>
+          </div>
           <div className="design-field">
             <label className="design-label">Color de texto</label>
             <div className="design-color-row">
@@ -263,8 +285,30 @@ function TabDesign() {
       {/* Hero Split */}
       {selectedItem.type === 'hero-split' && (
         <>
-          <div className="design-field"><label className="design-label">Badge</label>
-            <input className="design-input" value={c.badge||''} onChange={e=>update({badge:e.target.value})} /></div>
+          <div className="design-field">
+            <label className="design-label">Texto del Badge</label>
+            <input className="design-input" value={c.badge||''} onChange={e=>update({badge:e.target.value})} placeholder="Ej: Nuevo, Oferta..." />
+          </div>
+          <div className="design-field">
+            <label className="design-label">Ícono del Badge</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 120, overflowY: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: 8 }}>
+              {BADGE_ICONS.map(icon => (
+                <button
+                  key={icon}
+                  onClick={() => update({ badgeIcon: icon })}
+                  title={icon}
+                  style={{
+                    width: 34, height: 34, fontSize: 18, borderRadius: 6, cursor: 'pointer',
+                    border: c.badgeIcon === icon ? '2px solid var(--accent)' : '2px solid transparent',
+                    background: c.badgeIcon === icon ? 'rgba(230,0,126,0.2)' : 'rgba(255,255,255,0.05)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .15s'
+                  }}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="design-field"><label className="design-label">Título principal</label>
             <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} /></div>
           <div className="design-field"><label className="design-label">Subtítulo</label>
@@ -405,9 +449,27 @@ function TabDesign() {
         <>
           <div className="design-field"><label className="design-label">Texto del botón</label>
             <input className="design-input" value={c.text||''} onChange={e=>update({text:e.target.value})} /></div>
-          <div className="design-field"><label className="design-label">Número (con código país)</label>
-            <input className="design-input" value={c.phone||''} onChange={e=>update({phone:e.target.value})} placeholder="5491112345678" /></div>
-          <ColorPickers c={c} update={update} />
+          <div className="design-field">
+            <label className="design-label">Número (con código país)</label>
+            <input className="design-input" value={c.phone||''} onChange={e=>update({phone:e.target.value})} placeholder="5491112345678" />
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>💡 Al hacer clic en el canvas o en la vista previa, abrirá WhatsApp con este número.</p>
+          </div>
+          <div className="design-field">
+            <label className="design-label">Color de fondo <small style={{color:'var(--text-muted)'}}>(vacío = verde WhatsApp)</small></label>
+            <div className="design-color-row">
+              <input type="color" className="design-color-swatch" value={c.bgColor || '#25d366'} onChange={e => update({ bgColor: e.target.value })} />
+              <input className="design-input" value={c.bgColor || ''} onChange={e => update({ bgColor: e.target.value })} placeholder="Dejar vacío = verde" style={{ flex: 1 }} />
+              {c.bgColor && <button onClick={() => update({ bgColor: '' })} className="btn-del" title="Resetear" style={{flexShrink:0}}>↺</button>}
+            </div>
+          </div>
+          <div className="design-field">
+            <label className="design-label">Color de texto</label>
+            <div className="design-color-row">
+              <input type="color" className="design-color-swatch" value={c.textColor || '#ffffff'} onChange={e => update({ textColor: e.target.value })} />
+              <input className="design-input" value={c.textColor || ''} onChange={e => update({ textColor: e.target.value })} placeholder="#ffffff" style={{ flex: 1 }} />
+              {c.textColor && <button onClick={() => update({ textColor: '' })} className="btn-del" title="Resetear" style={{flexShrink:0}}>↺</button>}
+            </div>
+          </div>
         </>
       )}
 
@@ -484,9 +546,18 @@ function TabDesign() {
                 {SOCIAL_PLATFORMS.map(p=><option key={p} value={p}>{p}</option>)}
               </select>
               <div style={{display:'flex',gap:6}}>
-                <input className="design-input" value={link.url} onChange={e=>updateSocialLink(i,'url',e.target.value)} placeholder="https://..." style={{flex:1}} />
+                <input
+                  className="design-input"
+                  value={link.url === '#' ? '' : (link.url || '')}
+                  onChange={e=>updateSocialLink(i,'url',e.target.value)}
+                  placeholder="https://instagram.com/tu_cuenta"
+                  style={{flex:1}}
+                />
                 <button onClick={()=>removeSocialLink(i)} className="btn-del">×</button>
               </div>
+              {link.url && link.url !== '#' && (
+                <p style={{ fontSize: 11, color: '#10b981', marginTop: 4 }}>✅ Link activo — se abrirá en nueva pestaña</p>
+              )}
             </div>
           ))}
           <button onClick={addSocialLink} className="block-btn" style={{justifyContent:'center',color:'var(--accent-2)'}}>+ Agregar red</button>
@@ -494,7 +565,99 @@ function TabDesign() {
         </>
       )}
 
+      {/* ─── Stats Row / Chart ─── */}
+      {selectedItem.type === 'stats-row' && (() => {
+        const statItems  = c.items || [
+          { value: '1.2K', label: 'Clientes', raw: 1200 },
+          { value: '98%',  label: 'Satisfacción', raw: 98 },
+          { value: '5★',   label: 'Calificación', raw: 5 },
+          { value: '+200', label: 'Proyectos', raw: 200 },
+        ];
+        const updateStatItem = (idx, field, val) => {
+          const next = statItems.map((s, i) => i === idx ? { ...s, [field]: val } : s);
+          update({ items: next });
+        };
+        const addStatItem    = () => update({ items: [...statItems, { value: '0', label: 'Nueva métrica', raw: 0 }] });
+        const removeStatItem = (idx) => update({ items: statItems.filter((_, i) => i !== idx) });
+
+        return (
+          <>
+            <p className="sidebar-section-title">📊 Estadísticas &amp; Gráficos</p>
+
+            {/* Modo de visualización */}
+            <div className="design-field">
+              <label className="design-label">Tipo de gráfico</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                {[
+                  { id: 'counters',  emoji: '🔢', label: 'Contadores' },
+                  { id: 'bar',       emoji: '📊', label: 'Barras' },
+                  { id: 'pie',       emoji: '🥧', label: 'Torta' },
+                  { id: 'doughnut',  emoji: '🍩', label: 'Dona' },
+                  { id: 'line',      emoji: '📈', label: 'Línea' },
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => update({ chartMode: opt.id })}
+                    style={{
+                      padding: '8px 4px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
+                      border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                      background: (c.chartMode || 'counters') === opt.id ? 'var(--accent-2)' : 'rgba(255,255,255,0.05)',
+                      color: (c.chartMode || 'counters') === opt.id ? '#fff' : 'var(--text-secondary)',
+                      fontWeight: (c.chartMode || 'counters') === opt.id ? 700 : 400,
+                      transition: 'all .2s',
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{opt.emoji}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Título y subtítulo */}
+            <div className="design-field">
+              <label className="design-label">Título del bloque</label>
+              <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} placeholder="Ej: Nuestros Resultados" />
+            </div>
+            <div className="design-field">
+              <label className="design-label">Subtítulo</label>
+              <input className="design-input" value={c.subtitle||''} onChange={e=>update({subtitle:e.target.value})} placeholder="Ej: Datos clave de tu negocio" />
+            </div>
+
+            {/* Métricas */}
+            <p className="sidebar-section-title">Métricas / Datos</p>
+            {statItems.map((s, i) => (
+              <div key={i} style={{ marginBottom: 10, background: 'var(--surface)', borderRadius: 10, padding: 10, border: '1px solid var(--glass-border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 700 }}>MÉTRICA {i + 1}</span>
+                  {statItems.length > 1 && (
+                    <button onClick={() => removeStatItem(i)} className="btn-del">×</button>
+                  )}
+                </div>
+                <input className="design-input" value={s.value} onChange={e => updateStatItem(i, 'value', e.target.value)} placeholder="Ej: 1.2K" style={{ marginBottom: 6 }} />
+                <input className="design-input" value={s.label} onChange={e => updateStatItem(i, 'label', e.target.value)} placeholder="Ej: Clientes" style={{ marginBottom: 6 }} />
+                <input className="design-input" type="number" value={s.raw ?? 0} onChange={e => updateStatItem(i, 'raw', parseFloat(e.target.value) || 0)} placeholder="Valor numérico (para gráfico)" />
+              </div>
+            ))}
+            <button onClick={addStatItem} className="block-btn" style={{ justifyContent: 'center', color: 'var(--accent-2)' }}>
+              + Agregar métrica
+            </button>
+
+            {/* Color de acento para gráficos */}
+            <div className="design-field" style={{ marginTop: 12 }}>
+              <label className="design-label">Color acento (gráfico de línea)</label>
+              <div className="design-color-row">
+                <input type="color" className="design-color-swatch" value={c.accentColor||'#6366f1'} onChange={e=>update({accentColor:e.target.value})} />
+                <input className="design-input" value={c.accentColor||''} onChange={e=>update({accentColor:e.target.value})} placeholder="#6366f1" style={{ flex: 1 }} />
+              </div>
+            </div>
+            <ColorPickers c={c} update={update} />
+          </>
+        );
+      })()}
+
       {/* Coverage */}
+
       {selectedItem.type === 'coverage-text' && (
         <>
           <div className="design-field"><label className="design-label">Título</label>

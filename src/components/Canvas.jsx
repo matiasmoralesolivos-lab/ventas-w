@@ -6,6 +6,20 @@ import { useRef, useEffect, useState } from 'react';
 import '/node_modules/react-grid-layout/css/styles.css';
 import '/node_modules/react-resizable/css/styles.css';
 
+// Chart.js — registrar todo globalmente
+import {
+  Chart as ChartJS,
+  CategoryScale, LinearScale, BarElement,
+  ArcElement, PointElement, LineElement,
+  Title, Tooltip, Legend, Filler,
+} from 'chart.js';
+import { Bar, Pie, Doughnut, Line } from 'react-chartjs-2';
+ChartJS.register(
+  CategoryScale, LinearScale, BarElement,
+  ArcElement, PointElement, LineElement,
+  Title, Tooltip, Legend, Filler
+);
+
 function DraggableText({ blockId, elementKey, as = 'div', className, style, children, ...props }) {
   const { layout, updateItemContent, isPreviewMode } = useBuilderStore();
   const block = layout.find(b => b.i === blockId);
@@ -166,22 +180,23 @@ function BannerBlock({ item }) {
 
 function HeroSplitBlock({ item }) {
   const content = item.content || {};
-  const bg = GRADIENTS[content.gradient] || GRADIENTS.blue;
+  const bg = content.bgColor ? content.bgColor : (GRADIENTS[content.gradient] || GRADIENTS.blue);
+  const tc = content.textColor || undefined;
   return (
     <div className="b-hero-split" style={{ background: bg }}>
       <div className="b-hero-split-text" style={{ position: 'relative' }}>
-        {content.badge && <DraggableText blockId={item.i} elementKey="badge" as="span" className="b-hero-badge">{content.badge}</DraggableText>}
-        <DraggableText blockId={item.i} elementKey="title" as="h2">{content.title}</DraggableText>
-        <DraggableText blockId={item.i} elementKey="subtitle" as="p">{content.subtitle}</DraggableText>
-        {content.cta && <button className="b-hero-cta">{content.cta}</button>}
+        {content.badge && <DraggableText blockId={item.i} elementKey="badge" as="span" className="b-hero-badge" style={{ color: tc }}>{content.badge}</DraggableText>}
+        <DraggableText blockId={item.i} elementKey="title" as="h2" style={{ color: tc }}>{content.title}</DraggableText>
+        <DraggableText blockId={item.i} elementKey="subtitle" as="p" style={{ color: tc ? `${tc}cc` : undefined }}>{content.subtitle}</DraggableText>
+        {content.cta && <button className="b-hero-cta" style={{ color: tc }}>{content.cta}</button>}
       </div>
       <div className="b-hero-split-visual">
         {content.imageUrl ? (
           <img src={content.imageUrl} alt="Hero" className="b-hero-image" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
         ) : (
           <div className="b-hero-visual-card">
-            <div className="b-hero-visual-icon">🚀</div>
-            <span>Tu servicio</span>
+            <div className="b-hero-visual-icon">{content.badgeIcon || '🚀'}</div>
+            <span style={{ color: tc }}>Tu servicio</span>
           </div>
         )}
       </div>
@@ -189,16 +204,119 @@ function HeroSplitBlock({ item }) {
   );
 }
 
+const CHART_PALETTE = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6','#f43f5e','#14b8a6'];
+
 function StatsRowBlock({ item }) {
   const content = item.content || {};
+  const mode     = content.chartMode || 'counters'; // counters | bar | pie | doughnut | line
+  const statItems = content.items || [
+    { value: '1.2K', label: 'Clientes', raw: 1200 },
+    { value: '98%',  label: 'Satisfacción', raw: 98 },
+    { value: '5★',   label: 'Calificación', raw: 5 },
+    { value: '+200', label: 'Proyectos', raw: 200 },
+  ];
+  const bg    = content.bgColor  || '#0f172a';
+  const color = content.textColor || '#ffffff';
+  const accent = content.accentColor || '#6366f1';
+
+  const labels  = statItems.map(s => s.label);
+  const rawData = statItems.map(s => typeof s.raw === 'number' ? s.raw : parseFloat(s.value) || 0);
+  const chartColors = statItems.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+  const chartAlpha  = chartColors.map(c => c + '99');
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: { color, font: { family: 'Inter, sans-serif', size: 11 } }
+      },
+      tooltip: { enabled: true },
+    },
+    scales: (mode === 'bar' || mode === 'line') ? {
+      x: { ticks: { color }, grid: { color: 'rgba(255,255,255,0.08)' } },
+      y: { ticks: { color }, grid: { color: 'rgba(255,255,255,0.08)' } },
+    } : undefined,
+  };
+
+  const barData = {
+    labels,
+    datasets: [{
+      label: content.title || 'Métricas',
+      data: rawData,
+      backgroundColor: chartColors,
+      borderColor: chartColors,
+      borderWidth: 1,
+      borderRadius: 6,
+    }],
+  };
+
+  const pieData = {
+    labels,
+    datasets: [{ data: rawData, backgroundColor: chartColors, borderColor: chartAlpha, borderWidth: 2 }],
+  };
+
+  const lineData = {
+    labels,
+    datasets: [{
+      label: content.title || 'Tendencia',
+      data: rawData,
+      borderColor: accent,
+      backgroundColor: accent + '33',
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: accent,
+      pointRadius: 5,
+    }],
+  };
+
   return (
-    <div className="b-stats" style={{ background: content.bgColor || undefined, color: content.textColor || undefined }}>
-      {(content.items || []).map((item, i) => (
-        <div key={i} className="b-stats-item">
-          <DraggableText blockId={item.i} elementKey={`stats-value-${i}`} as="div" className="b-stats-value" style={{ color: content.textColor || undefined }}>{item.value}</DraggableText>
-          <DraggableText blockId={item.i} elementKey={`stats-label-${i}`} as="div" className="b-stats-label" style={{ color: content.textColor ? `${content.textColor}bb` : undefined }}>{item.label}</DraggableText>
+    <div className="b-stats" style={{ background: bg, color, flexDirection: 'column', gap: 0, padding: 0 }}>
+      {/* Header */}
+      <div className="b-stats-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <span className="b-stats-title">{content.title || 'Estadísticas'}</span>
+        <span className="b-stats-subtitle" style={{ color: color + '99' }}>{content.subtitle || 'Datos clave de tu negocio'}</span>
+      </div>
+
+      {/* Counters mode */}
+      {mode === 'counters' && (
+        <div className="b-stats-counters">
+          {statItems.map((s, i) => (
+            <div key={i} className="b-stats-item">
+              <div className="b-stats-value" style={{ color: CHART_PALETTE[i % CHART_PALETTE.length] }}>{s.value}</div>
+              <div className="b-stats-label" style={{ color: color + 'bb' }}>{s.label}</div>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+
+      {/* Bar chart */}
+      {mode === 'bar' && (
+        <div className="b-stats-chart">
+          <Bar data={barData} options={chartOptions} />
+        </div>
+      )}
+
+      {/* Pie chart */}
+      {mode === 'pie' && (
+        <div className="b-stats-chart">
+          <Pie data={pieData} options={{ ...chartOptions, scales: undefined }} />
+        </div>
+      )}
+
+      {/* Doughnut chart */}
+      {mode === 'doughnut' && (
+        <div className="b-stats-chart">
+          <Doughnut data={pieData} options={{ ...chartOptions, scales: undefined }} />
+        </div>
+      )}
+
+      {/* Line chart */}
+      {mode === 'line' && (
+        <div className="b-stats-chart">
+          <Line data={lineData} options={chartOptions} />
+        </div>
+      )}
     </div>
   );
 }
@@ -301,18 +419,30 @@ function BenefitListBlock({ item }) {
 
 function WhatsAppBlock({ item }) {
   const content = item.content || {};
+  const bgStyle = content.bgColor
+    ? { background: content.bgColor }
+    : {};
+  const tc = content.textColor || '#ffffff';
+  const waUrl = content.phone ? `https://wa.me/${content.phone.replace(/\D/g, '')}` : '#';
   return (
-    <div className="b-whatsapp">
+    <a
+      className="b-whatsapp"
+      href={waUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ textDecoration: 'none', ...bgStyle }}
+      onClick={(e) => e.stopPropagation()}
+    >
       <span className="b-whatsapp-icon">💬</span>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-        <DraggableText blockId={item.i} elementKey="text" as="span">{content.text}</DraggableText>
+        <DraggableText blockId={item.i} elementKey="text" as="span" style={{ color: tc }}>{content.text}</DraggableText>
         {content.phone && (
-          <DraggableText blockId={item.i} elementKey="phone" as="div" style={{ fontSize: '15px', fontWeight: 600, color: '#fff', opacity: 0.9, marginTop: '-2px' }}>
+          <DraggableText blockId={item.i} elementKey="phone" as="div" style={{ fontSize: '15px', fontWeight: 600, color: tc, opacity: 0.9, marginTop: '-2px' }}>
             {content.phone}
           </DraggableText>
         )}
       </div>
-    </div>
+    </a>
   );
 }
 
@@ -382,16 +512,31 @@ function BioBlock({ item }) {
   );
 }
 
+const SOCIAL_ICONS = { Instagram: '📷', Facebook: '📘', Twitter: '🐦', TikTok: '🎵', YouTube: '▶️', LinkedIn: '💼', Pinterest: '📌', WhatsApp: '💬' };
+const SOCIAL_COLORS = { Instagram: '#e1306c', Facebook: '#1877f2', Twitter: '#1da1f2', TikTok: '#010101', YouTube: '#ff0000', LinkedIn: '#0077b5', Pinterest: '#e60023', WhatsApp: '#25d366' };
+
 function SocialBlock({ item }) {
   const content = item.content || {};
-  const colors = { Instagram: '#e1306c', Facebook: '#1877f2', Twitter: '#1da1f2', TikTok: '#000', YouTube: '#ff0000', LinkedIn: '#0077b5' };
   return (
-    <div className="b-social">
-      {(content.links || []).map((l, i) => (
-        <div key={i} className="b-social-pill" style={{ background: colors[l.platform] || '#6366f1' }}>
-          {l.platform}
-        </div>
-      ))}
+    <div className="b-social" style={{ background: content.bgColor || undefined }}>
+      {(content.links || []).map((l, i) => {
+        const url = l.url && l.url !== '#' ? l.url : null;
+        return (
+          <a
+            key={i}
+            className="b-social-pill"
+            style={{ background: SOCIAL_COLORS[l.platform] || '#6366f1', textDecoration: 'none', cursor: url ? 'pointer' : 'default' }}
+            href={url || '#'}
+            target={url ? '_blank' : undefined}
+            rel="noopener noreferrer"
+            onClick={(e) => { e.stopPropagation(); if (!url) e.preventDefault(); }}
+            title={url ? `Abrir ${l.platform}` : l.platform}
+          >
+            <span style={{ marginRight: 6 }}>{SOCIAL_ICONS[l.platform] || '🔗'}</span>
+            {l.platform}
+          </a>
+        );
+      })}
     </div>
   );
 }
@@ -615,6 +760,7 @@ export default function Canvas() {
 
   function handleDragOver(e) {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
   }
 
   const VIEW_CONFIG = {
