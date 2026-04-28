@@ -417,9 +417,34 @@ function TabDesign() {
             <input className="design-input" value={c.title||''} onChange={e=>update({title:e.target.value})} /></div>
           {(c.items||[]).map((item,i)=>(
             <div key={i} style={{marginBottom:8,background:'var(--surface)',borderRadius:8,padding:8}}>
-              <div style={{display:'flex',gap:6,marginBottom:6}}>
-                <input className="design-input" value={item.icon} onChange={e=>updateIconItem(i,'icon',e.target.value)} placeholder="🔷" style={{width:48,textAlign:'center'}} />
+              <div style={{display:'flex',gap:6,marginBottom:6,alignItems:'center'}}>
+                {/* Emoji actual + input manual */}
+                <span style={{fontSize:22,lineHeight:1,flexShrink:0}}>{item.icon || '🔷'}</span>
+                <input
+                  className="design-input"
+                  value={item.icon}
+                  onChange={e=>updateIconItem(i,'icon',e.target.value)}
+                  placeholder="🔷"
+                  style={{width:52,textAlign:'center',fontSize:18}}
+                  title="Escribí o pegá cualquier emoji"
+                />
                 <input className="design-input" value={item.label} onChange={e=>updateIconItem(i,'label',e.target.value)} placeholder="Título" style={{flex:1}} />
+              </div>
+              {/* Picker rápido de iconos */}
+              <div style={{display:'flex',flexWrap:'wrap',gap:4,maxHeight:96,overflowY:'auto',background:'rgba(0,0,0,0.2)',borderRadius:6,padding:6,marginBottom:6}}>
+                {BADGE_ICONS.map(icon=>(
+                  <button
+                    key={icon}
+                    onClick={()=>updateIconItem(i,'icon',icon)}
+                    title={icon}
+                    style={{
+                      width:30,height:30,fontSize:16,borderRadius:5,cursor:'pointer',
+                      border:item.icon===icon?'2px solid var(--accent)':'2px solid transparent',
+                      background:item.icon===icon?'rgba(230,0,126,0.2)':'rgba(255,255,255,0.05)',
+                      display:'flex',alignItems:'center',justifyContent:'center',transition:'all .15s'
+                    }}
+                  >{icon}</button>
+                ))}
               </div>
               <input className="design-input" value={item.desc} onChange={e=>updateIconItem(i,'desc',e.target.value)} placeholder="Descripción corta" />
             </div>

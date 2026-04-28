@@ -185,7 +185,12 @@ function HeroSplitBlock({ item }) {
   return (
     <div className="b-hero-split" style={{ background: bg }}>
       <div className="b-hero-split-text" style={{ position: 'relative' }}>
-        {content.badge && <DraggableText blockId={item.i} elementKey="badge" as="span" className="b-hero-badge" style={{ color: tc }}>{content.badge}</DraggableText>}
+        {content.badge && (
+          <DraggableText blockId={item.i} elementKey="badge" as="span" className="b-hero-badge" style={{ color: tc }}>
+            {content.badgeIcon && <span style={{ marginRight: 4 }}>{content.badgeIcon}</span>}
+            {content.badge}
+          </DraggableText>
+        )}
         <DraggableText blockId={item.i} elementKey="title" as="h2" style={{ color: tc }}>{content.title}</DraggableText>
         <DraggableText blockId={item.i} elementKey="subtitle" as="p" style={{ color: tc ? `${tc}cc` : undefined }}>{content.subtitle}</DraggableText>
         {content.cta && <button className="b-hero-cta" style={{ color: tc }}>{content.cta}</button>}
@@ -808,6 +813,10 @@ export default function Canvas() {
               isDroppable={!isPreviewMode}
               droppingItem={droppingItem}
               onDrop={handleDrop}
+              autoSize={true}
+              compactType={null}
+              preventCollision={false}
+              useCSSTransforms={true}
             >
               {layout.map((item, idx) => {
                 const isSelected = selectedItemId === item.i;
